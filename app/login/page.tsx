@@ -4,8 +4,10 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { useAuth } from '@/contexts/auth-context'
 
 export default function LoginPage() {
+  const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -18,13 +20,9 @@ export default function LoginPage() {
     setError('')
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Redirect to dashboard
-      window.location.href = '/dashboard'
-    } catch (err) {
-      setError('Invalid email or password')
+      await login(email, password)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Invalid email or password')
       setIsLoading(false)
     }
   }

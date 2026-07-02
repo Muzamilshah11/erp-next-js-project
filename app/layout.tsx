@@ -2,7 +2,8 @@ import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
+import { AuthProvider } from '@/contexts/auth-context'
 
 const jetbrainsMono = JetBrains_Mono({subsets:['latin'],variable:'--font-mono'});
 
@@ -51,7 +52,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("bg-background", geistSans.variable, geistMono.variable, "font-mono", jetbrainsMono.variable)}>
       <body className="font-sans antialiased bg-background text-foreground">
-        {children}
+        <AuthProvider>{children}</AuthProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

@@ -2,8 +2,11 @@
 
 import { motion } from 'framer-motion'
 import { Bell, Search, User, Settings } from 'lucide-react'
+import { useAuth } from '@/contexts/auth-context'
 
 export function Header() {
+  const { user } = useAuth()
+
   return (
     <motion.header
       className="h-16 bg-card border-b border-border flex items-center justify-between px-6 shadow-sm"
@@ -65,8 +68,8 @@ export function Header() {
           whileHover={{ scale: 1.02 }}
         >
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-medium text-foreground">John Doe</p>
-            <p className="text-xs text-muted-foreground">Admin</p>
+            <p className="text-sm font-medium text-foreground">{user?.fullName || 'User'}</p>
+            <p className="text-xs text-muted-foreground capitalize">{user?.role || 'User'}</p>
           </div>
           <motion.button
             className="w-9 h-9 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center text-white font-bold hover:shadow-lg transition-shadow"

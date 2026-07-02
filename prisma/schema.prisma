@@ -1,0 +1,148 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  fullName  String
+  email     String   @unique
+  password  String
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Employee {
+  id          String   @id @default(cuid())
+  name        String
+  email       String
+  phone       String
+  designation String
+  department  String
+  salary      Float
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Customer {
+  id         String   @id @default(cuid())
+  name       String
+  email      String
+  phone      String
+  city       String
+  totalSales Float    @default(0)
+  balance    Float    @default(0)
+  status     String   @default("active")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  invoices   Invoice[]
+}
+
+model Invoice {
+  id         String        @id @default(cuid())
+  invoiceNo  String        @unique
+  customerId String
+  customer   Customer      @relation(fields: [customerId], references: [id])
+  date       DateTime
+  dueDate    DateTime
+  amount     Float
+  paid       Float         @default(0)
+  status     String        @default("draft")
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  items      InvoiceItem[]
+}
+
+model InvoiceItem {
+  id        String  @id @default(cuid())
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id])
+  description String
+  quantity  Int
+  price     Float
+}
+
+model InventoryItem {
+  id           String   @id @default(cuid())
+  sku          String   @unique
+  name         String
+  category     String
+  quantity     Int
+  reorderLevel Int
+  unitPrice    Float
+  status       String   @default("in-stock")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Account {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  type      String
+  balance   Float    @default(0)
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  journalLines      JournalLine[]
+  bankTransactions  BankTransaction[]
+  reconciliations   Reconciliation[]
+}
+
+model JournalEntry {
+  id          String        @id @default(cuid())
+  entryNo     String        @unique
+  date        DateTime
+  description String
+  totalDebit  Float
+  totalCredit Float
+  status      String        @default("draft")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  lines       JournalLine[]
+}
+
+model JournalLine {
+  id             String       @id @default(cuid())
+  journalEntryId String
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id])
+  accountId      String
+  account        Account      @relation(fields: [accountId], references: [id])
+  debit          Float        @default(0)
+  credit         Float        @default(0)
+}
+
+model BankTransaction {
+  id          String   @id @default(cuid())
+  accountId   String
+  account     Account  @relation(fields: [accountId], references: [id])
+  date        DateTime
+  description String
+  reference   String?
+  debit       Float    @default(0)
+  credit      Float    @default(0)
+  balance     Float    @default(0)
+  reconciled  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Reconciliation {
+  id            String   @id @default(cuid())
+  accountId     String
+  account       Account  @relation(fields: [accountId], references: [id])
+  periodStart   DateTime
+  periodEnd     DateTime
+  statementBalance Float  @default(0)
+  ledgerBalance    Float  @default(0)
+  difference       Float  @default(0)
+  status         String   @default("draft")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}

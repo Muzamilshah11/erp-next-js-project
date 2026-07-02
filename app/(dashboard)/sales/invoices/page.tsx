@@ -2,8 +2,8 @@
 
 import { motion } from 'framer-motion'
 import { DataTable } from '@/components/shared/data-table'
-import { Plus, FileText, Download, Send } from 'lucide-react'
-import { useState } from 'react'
+import { Plus, FileText, Download, Send, Trash2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
 interface Invoice {
   id: string
@@ -15,59 +15,6 @@ interface Invoice {
   paid: number
   status: 'draft' | 'sent' | 'paid' | 'overdue'
 }
-
-const mockInvoices: Invoice[] = [
-  {
-    id: '1',
-    invoiceNo: 'INV-2025-001',
-    customer: 'ABC Trading Co.',
-    date: '2025-01-10',
-    dueDate: '2025-02-10',
-    amount: 250000,
-    paid: 250000,
-    status: 'paid',
-  },
-  {
-    id: '2',
-    invoiceNo: 'INV-2025-002',
-    customer: 'XYZ Enterprises',
-    date: '2025-01-15',
-    dueDate: '2025-02-15',
-    amount: 180000,
-    paid: 0,
-    status: 'sent',
-  },
-  {
-    id: '3',
-    invoiceNo: 'INV-2025-003',
-    customer: 'Tech Solutions Ltd.',
-    date: '2025-01-12',
-    dueDate: '2025-02-12',
-    amount: 95000,
-    paid: 0,
-    status: 'overdue',
-  },
-  {
-    id: '4',
-    invoiceNo: 'INV-2025-004',
-    customer: 'Global Imports',
-    date: '2025-01-18',
-    dueDate: '2025-02-18',
-    amount: 450000,
-    paid: 150000,
-    status: 'sent',
-  },
-  {
-    id: '5',
-    invoiceNo: 'INV-2025-005',
-    customer: 'Retail Plus',
-    date: '2025-01-20',
-    dueDate: '2025-02-20',
-    amount: 75000,
-    paid: 0,
-    status: 'draft',
-  },
-]
 
 const columns = [
   {
@@ -143,7 +90,46 @@ const columns = [
 ]
 
 export default function InvoicesPage() {
+  const [invoices, setInvoices] = useState<Invoice[]>([])
   const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState({ customerId: '', date: '', dueDate: '', amount: '', description: '' })
+
+  const fetchInvoices = async () => {
+    const res = await fetch('/api/sales/invoices')
+    const data = await res.json()
+    setInvoices(data.invoices.map((inv: { customer: { name: string }; date: string; dueDate: string; items: unknown[]; id: string; invoiceNo: string; amount: number; paid: number; status: string }) => ({
+      id: inv.id,
+      invoiceNo: inv.invoiceNo,
+      customer: inv.customer?.name || 'Unknown',
+      date: inv.date,
+      dueDate: inv.dueDate,
+      amount: inv.amount,
+      paid: inv.paid,
+      status: inv.status,
+    })))
+  }
+
+  useEffect(() => { fetchInvoices() }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const res = await fetch('/api/sales/invoices', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerId: form.customerId,
+        date: form.date,
+        dueDate: form.dueDate,
+        amount: parseFloat(form.amount) || 0,
+        status: 'draft',
+      }),
+    })
+    if (res.ok) {
+      setShowForm(false)
+      setForm({ customerId: '', date: '', dueDate: '', amount: '', description: '' })
+      fetchInvoices()
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -169,7 +155,8 @@ export default function InvoicesPage() {
       </motion.div>
 
       {showForm && (
-        <motion.div
+        <motion.form
+          onSubmit={handleSubmit}
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
@@ -178,58 +165,56 @@ export default function InvoicesPage() {
           <h3 className="text-lg font-semibold text-foreground mb-4">Create New Invoice</h3>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <select className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                <option>Select Customer</option>
-                <option>ABC Trading Co.</option>
-                <option>XYZ Enterprises</option>
-              </select>
+              <input
+                type="text"
+                placeholder="Customer ID"
+                value={form.customerId}
+                onChange={e => setForm({ ...form, customerId: e.target.value })}
+                required
+                className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
               <input
                 type="date"
+                value={form.date}
+                onChange={e => setForm({ ...form, date: e.target.value })}
+                required
+                className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <input
+                type="date"
+                value={form.dueDate}
+                onChange={e => setForm({ ...form, dueDate: e.target.value })}
+                required
+                className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <input
+                type="number"
+                placeholder="Amount"
+                value={form.amount}
+                onChange={e => setForm({ ...form, amount: e.target.value })}
+                required
                 className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
-            <div className="bg-secondary/30 p-4 rounded-lg">
-              <p className="text-sm font-medium text-foreground mb-3">Invoice Items</p>
-              <div className="space-y-2">
-                {[0].map(i => (
-                  <div key={i} className="grid grid-cols-4 gap-2">
-                    <input
-                      type="text"
-                      placeholder="Description"
-                      className="col-span-2 px-3 py-2 border border-input rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Qty"
-                      className="px-3 py-2 border border-input rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Price"
-                      className="px-3 py-2 border border-input rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
             <div className="flex gap-2 justify-end">
               <button
+                type="button"
                 onClick={() => setShowForm(false)}
                 className="px-4 py-2 border border-border rounded-lg font-medium hover:bg-secondary transition-colors"
               >
                 Cancel
               </button>
-              <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:shadow-lg transition-shadow">
+              <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:shadow-lg transition-shadow">
                 Create Invoice
               </button>
             </div>
           </div>
-        </motion.div>
+        </motion.form>
       )}
 
       <DataTable
         columns={columns}
-        data={mockInvoices}
+        data={invoices}
         title="Sales Invoices"
         actions={(row) => (
           <>
@@ -243,7 +228,15 @@ export default function InvoicesPage() {
             </motion.button>
             {row.status === 'draft' && (
               <motion.button
-                className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+                onClick={async () => {
+                  await fetch(`/api/sales/invoices/${row.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'sent' }),
+                  })
+                  fetchInvoices()
+                }}
+                className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 title="Send"
@@ -251,6 +244,20 @@ export default function InvoicesPage() {
                 <Send className="w-4 h-4" />
               </motion.button>
             )}
+            <motion.button
+              onClick={async () => {
+                if (window.confirm('Delete this invoice?')) {
+                  await fetch(`/api/sales/invoices/${row.id}`, { method: 'DELETE' })
+                  fetchInvoices()
+                }
+              }}
+              className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              title="Delete"
+            >
+              <Trash2 className="w-4 h-4" />
+            </motion.button>
           </>
         )}
       />

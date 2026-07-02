@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { DataTable } from '@/components/shared/data-table'
 import { Button } from '@/components/ui/button'
 import { Plus, Edit, Trash2, Archive } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface Account {
   id: string
@@ -14,17 +14,6 @@ interface Account {
   balance: number
   status: 'active' | 'inactive'
 }
-
-const mockAccounts: Account[] = [
-  { id: '1', code: '1110', name: 'Petty Cash', type: 'Asset', balance: 45000, status: 'active' },
-  { id: '2', code: '1112', name: 'Bank — HBL Current', type: 'Asset', balance: 2500000, status: 'active' },
-  { id: '3', code: '1121', name: 'Trade Debtors', type: 'Asset', balance: 850000, status: 'active' },
-  { id: '4', code: '1130', name: 'Inventory', type: 'Asset', balance: 1200000, status: 'active' },
-  { id: '5', code: '2111', name: 'Trade Creditors', type: 'Liability', balance: -450000, status: 'active' },
-  { id: '6', code: '2121', name: 'Sales Tax Payable', type: 'Liability', balance: -180000, status: 'active' },
-  { id: '7', code: '3100', name: 'Share Capital', type: 'Equity', balance: -5000000, status: 'active' },
-  { id: '8', code: '4110', name: 'Product Sales', type: 'Revenue', balance: -2400000, status: 'active' },
-]
 
 const columns = [
   {
@@ -78,7 +67,42 @@ const columns = [
 ]
 
 export default function ChartOfAccountsPage() {
+  const [accounts, setAccounts] = useState<Account[]>([])
   const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [form, setForm] = useState({ code: '', name: '', type: 'Asset', balance: '' })
+
+  const fetchAccounts = async () => {
+    const res = await fetch('/api/finance/accounts')
+    const data = await res.json()
+    setAccounts(data.accounts)
+  }
+
+  useEffect(() => { fetchAccounts() }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const body = { ...form, balance: parseFloat(form.balance) || 0, status: 'active' }
+
+    if (editingId) {
+      await fetch(`/api/finance/accounts/${editingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+    } else {
+      await fetch('/api/finance/accounts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+    }
+
+    setShowForm(false)
+    setEditingId(null)
+    setForm({ code: '', name: '', type: 'Asset', balance: '' })
+    fetchAccounts()
+  }
 
   return (
     <div className="space-y-4">
@@ -93,7 +117,7 @@ export default function ChartOfAccountsPage() {
           <p className="text-muted-foreground text-sm mt-1">Manage your general ledger accounts</p>
         </div>
         <motion.button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => { setShowForm(!showForm); setEditingId(null); setForm({ code: '', name: '', type: 'Asset', balance: '' }) }}
           className="px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium flex items-center gap-2 hover:shadow-lg transition-shadow border border-black/10"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -104,7 +128,8 @@ export default function ChartOfAccountsPage() {
       </motion.div>
 
       {showForm && (
-        <motion.div
+        <motion.form
+          onSubmit={handleSubmit}
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
@@ -115,14 +140,24 @@ export default function ChartOfAccountsPage() {
             <input
               type="text"
               placeholder="Account Code"
+              value={form.code}
+              onChange={e => setForm({ ...form, code: e.target.value })}
+              required
               className="px-3 py-1.5 border border-black/15 dark:border-black/30 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <input
               type="text"
               placeholder="Account Name"
+              value={form.name}
+              onChange={e => setForm({ ...form, name: e.target.value })}
+              required
               className="px-3 py-1.5 border border-black/15 dark:border-black/30 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
-            <select className="px-3 py-1.5 border border-black/15 dark:border-black/30 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+            <select
+              value={form.type}
+              onChange={e => setForm({ ...form, type: e.target.value })}
+              className="px-3 py-1.5 border border-black/15 dark:border-black/30 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            >
               <option>Asset</option>
               <option>Liability</option>
               <option>Equity</option>
@@ -132,40 +167,60 @@ export default function ChartOfAccountsPage() {
             <input
               type="number"
               placeholder="Opening Balance"
+              value={form.balance}
+              onChange={e => setForm({ ...form, balance: e.target.value })}
               className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
           <div className="mt-4 flex gap-2 justify-end">
             <button
+              type="button"
               onClick={() => setShowForm(false)}
               className="px-4 py-2 border border-border rounded-lg font-medium hover:bg-secondary transition-colors"
             >
               Cancel
             </button>
-            <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:shadow-lg transition-shadow">
+            <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:shadow-lg transition-shadow">
               Save Account
             </button>
           </div>
-        </motion.div>
+        </motion.form>
       )}
 
       <DataTable
         columns={columns}
-        data={mockAccounts}
+        data={accounts}
         title="All Accounts"
         actions={(row) => (
           <>
             <motion.button
-              className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+              onClick={() => {
+                setEditingId(row.id)
+                setForm({ code: row.code, name: row.name, type: row.type, balance: String(row.balance) })
+                setShowForm(true)
+              }}
+              className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
+              title="Edit"
             >
               <Edit className="w-4 h-4" />
             </motion.button>
             <motion.button
-              className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+              onClick={async () => {
+                if (window.confirm(row.status === 'active' ? 'Archive this account?' : 'Activate this account?')) {
+                  await fetch(`/api/finance/accounts/${row.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: row.status === 'active' ? 'inactive' : 'active' }),
+                  })
+                  fetchAccounts()
+                }
+              }}
+              className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
+              title={row.status === 'active' ? 'Archive' : 'Activate'}
             >
               <Archive className="w-4 h-4" />
             </motion.button>

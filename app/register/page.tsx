@@ -4,8 +4,10 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { User, Mail, Lock, Eye, EyeOff, ArrowRight, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
+import { useAuth } from '@/contexts/auth-context'
 
 export default function RegisterPage() {
+  const { register } = useAuth()
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -52,16 +54,10 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      await register(formData.fullName, formData.email, formData.password)
       setIsSuccess(true)
-
-      // Redirect to dashboard after 2 seconds
-      setTimeout(() => {
-        window.location.href = '/dashboard'
-      }, 2000)
-    } catch (err) {
-      setError('Registration failed. Please try again.')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Registration failed. Please try again.')
       setIsLoading(false)
     }
   }

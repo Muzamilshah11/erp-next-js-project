@@ -2,8 +2,8 @@
 
 import { motion } from 'framer-motion'
 import { DataTable } from '@/components/shared/data-table'
-import { Plus, User, Mail, Phone } from 'lucide-react'
-import { useState } from 'react'
+import { Plus, User, Mail, Phone, Trash2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
 interface Employee {
   id: string
@@ -16,64 +16,6 @@ interface Employee {
   salary: number
   status: 'active' | 'inactive'
 }
-
-const mockEmployees: Employee[] = [
-  {
-    id: '1',
-    name: 'Ahmed Hassan',
-    email: 'ahmed.hassan@company.pk',
-    phone: '+92-300-1234567',
-    designation: 'Finance Manager',
-    department: 'Finance',
-    joinDate: '2023-01-15',
-    salary: 150000,
-    status: 'active',
-  },
-  {
-    id: '2',
-    name: 'Fatima Khan',
-    email: 'fatima.khan@company.pk',
-    phone: '+92-321-9876543',
-    designation: 'Sales Executive',
-    department: 'Sales',
-    joinDate: '2023-06-20',
-    salary: 85000,
-    status: 'active',
-  },
-  {
-    id: '3',
-    name: 'Muhammad Ali',
-    email: 'ali.muhammad@company.pk',
-    phone: '+92-333-5555555',
-    designation: 'Inventory Supervisor',
-    department: 'Inventory',
-    joinDate: '2022-11-10',
-    salary: 120000,
-    status: 'active',
-  },
-  {
-    id: '4',
-    name: 'Sara Ahmed',
-    email: 'sara.ahmed@company.pk',
-    phone: '+92-345-7654321',
-    designation: 'HR Specialist',
-    department: 'HR',
-    joinDate: '2024-01-05',
-    salary: 95000,
-    status: 'active',
-  },
-  {
-    id: '5',
-    name: 'Khalid Hussain',
-    email: 'khalid.h@company.pk',
-    phone: '+92-300-4444444',
-    designation: 'Accounts Officer',
-    department: 'Finance',
-    joinDate: '2023-03-22',
-    salary: 75000,
-    status: 'inactive',
-  },
-]
 
 const columns = [
   {
@@ -163,11 +105,42 @@ const columns = [
 ]
 
 export default function HRPage() {
+  const [employees, setEmployees] = useState<Employee[]>([])
   const [showForm, setShowForm] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [form, setForm] = useState({ name: '', email: '', phone: '', department: '', designation: '', salary: '' })
 
-  const totalEmployees = mockEmployees.length
-  const activeEmployees = mockEmployees.filter(e => e.status === 'active').length
-  const totalPayroll = mockEmployees.reduce((sum, e) => sum + e.salary, 0)
+  const fetchEmployees = async () => {
+    try {
+      const res = await fetch('/api/hr/employees')
+      const data = await res.json()
+      setEmployees(data.employees)
+    } catch (err) {
+      console.error('Failed to fetch employees', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchEmployees() }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const res = await fetch('/api/hr/employees', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...form, salary: parseFloat(form.salary) || 0, status: 'active', joinDate: new Date().toISOString().split('T')[0] }),
+    })
+    if (res.ok) {
+      setShowForm(false)
+      setForm({ name: '', email: '', phone: '', department: '', designation: '', salary: '' })
+      fetchEmployees()
+    }
+  }
+
+  const totalEmployees = employees.length
+  const activeEmployees = employees.filter(e => e.status === 'active').length
+  const totalPayroll = employees.reduce((sum, e) => sum + e.salary, 0)
 
   return (
     <div className="space-y-6">
@@ -235,7 +208,8 @@ export default function HRPage() {
       </div>
 
       {showForm && (
-        <motion.div
+        <motion.form
+          onSubmit={handleSubmit}
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
@@ -246,20 +220,34 @@ export default function HRPage() {
             <input
               type="text"
               placeholder="Full Name"
+              value={form.name}
+              onChange={e => setForm({ ...form, name: e.target.value })}
+              required
               className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <input
               type="email"
               placeholder="Email"
+              value={form.email}
+              onChange={e => setForm({ ...form, email: e.target.value })}
+              required
               className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <input
               type="tel"
               placeholder="Phone"
+              value={form.phone}
+              onChange={e => setForm({ ...form, phone: e.target.value })}
+              required
               className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
-            <select className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-              <option>Select Department</option>
+            <select
+              value={form.department}
+              onChange={e => setForm({ ...form, department: e.target.value })}
+              required
+              className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">Select Department</option>
               <option>Finance</option>
               <option>Sales</option>
               <option>Inventory</option>
@@ -268,29 +256,56 @@ export default function HRPage() {
             <input
               type="text"
               placeholder="Designation"
+              value={form.designation}
+              onChange={e => setForm({ ...form, designation: e.target.value })}
+              required
               className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <input
               type="number"
               placeholder="Salary"
+              value={form.salary}
+              onChange={e => setForm({ ...form, salary: e.target.value })}
+              required
               className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
           <div className="mt-4 flex gap-2 justify-end">
             <button
+              type="button"
               onClick={() => setShowForm(false)}
               className="px-4 py-2 border border-border rounded-lg font-medium hover:bg-secondary transition-colors"
             >
               Cancel
             </button>
-            <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:shadow-lg transition-shadow">
+            <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:shadow-lg transition-shadow">
               Add Employee
             </button>
           </div>
-        </motion.div>
+        </motion.form>
       )}
 
-      <DataTable columns={columns} data={mockEmployees} title="Employees" />
+      <DataTable
+        columns={columns}
+        data={employees}
+        title="Employees"
+        actions={(row) => (
+          <motion.button
+            onClick={async () => {
+              if (window.confirm('Delete this employee?')) {
+                await fetch(`/api/hr/employees/${row.id}`, { method: 'DELETE' })
+                fetchEmployees()
+              }
+            }}
+            className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            title="Delete"
+          >
+            <Trash2 className="w-4 h-4" />
+          </motion.button>
+        )}
+      />
     </div>
   )
 }

@@ -2,8 +2,8 @@
 
 import { motion } from 'framer-motion'
 import { DataTable } from '@/components/shared/data-table'
-import { Plus, AlertTriangle, TrendingUp } from 'lucide-react'
-import { useState } from 'react'
+import { Plus, AlertTriangle, TrendingUp, Trash2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
 interface InventoryItem {
   id: string
@@ -16,64 +16,6 @@ interface InventoryItem {
   value: number
   status: 'in-stock' | 'low-stock' | 'out-of-stock'
 }
-
-const mockItems: InventoryItem[] = [
-  {
-    id: '1',
-    sku: 'SKU-001',
-    name: 'Laptop Pro',
-    category: 'Electronics',
-    quantity: 15,
-    reorderLevel: 5,
-    unitPrice: 125000,
-    value: 1875000,
-    status: 'in-stock',
-  },
-  {
-    id: '2',
-    sku: 'SKU-002',
-    name: 'USB Cable',
-    category: 'Accessories',
-    quantity: 3,
-    reorderLevel: 20,
-    unitPrice: 500,
-    value: 1500,
-    status: 'low-stock',
-  },
-  {
-    id: '3',
-    sku: 'SKU-003',
-    name: 'Office Chair',
-    category: 'Furniture',
-    quantity: 0,
-    reorderLevel: 3,
-    unitPrice: 15000,
-    value: 0,
-    status: 'out-of-stock',
-  },
-  {
-    id: '4',
-    sku: 'SKU-004',
-    name: 'Desk Lamp',
-    category: 'Lighting',
-    quantity: 42,
-    reorderLevel: 10,
-    unitPrice: 3500,
-    value: 147000,
-    status: 'in-stock',
-  },
-  {
-    id: '5',
-    sku: 'SKU-005',
-    name: 'Monitor 24"',
-    category: 'Electronics',
-    quantity: 8,
-    reorderLevel: 5,
-    unitPrice: 35000,
-    value: 280000,
-    status: 'in-stock',
-  },
-]
 
 const columns = [
   {
@@ -165,11 +107,45 @@ const columns = [
 ]
 
 export default function InventoryItemsPage() {
+  const [items, setItems] = useState<InventoryItem[]>([])
   const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState({ name: '', sku: '', category: '', unitPrice: '', quantity: '', reorderLevel: '' })
 
-  const totalValue = mockItems.reduce((sum, item) => sum + item.value, 0)
-  const lowStockItems = mockItems.filter(item => item.quantity < item.reorderLevel)
-  const outOfStock = mockItems.filter(item => item.quantity === 0)
+  const fetchItems = async () => {
+    const res = await fetch('/api/inventory/items')
+    const data = await res.json()
+    setItems(data.items.map((item: { unitPrice: number; quantity: number; reorderLevel: number; id: string; sku: string; name: string; category: string; status: string }) => ({
+      ...item,
+      unitPrice: item.unitPrice,
+      value: item.unitPrice * item.quantity,
+      reorderLevel: item.reorderLevel,
+    })))
+  }
+
+  useEffect(() => { fetchItems() }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const res = await fetch('/api/inventory/items', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...form,
+        unitPrice: parseFloat(form.unitPrice) || 0,
+        quantity: parseInt(form.quantity) || 0,
+        reorderLevel: parseInt(form.reorderLevel) || 0,
+      }),
+    })
+    if (res.ok) {
+      setShowForm(false)
+      setForm({ name: '', sku: '', category: '', unitPrice: '', quantity: '', reorderLevel: '' })
+      fetchItems()
+    }
+  }
+
+  const totalValue = items.reduce((sum, item) => sum + item.value, 0)
+  const lowStockItems = items.filter(item => item.quantity < item.reorderLevel && item.quantity > 0)
+  const outOfStock = items.filter(item => item.quantity === 0)
 
   return (
     <div className="space-y-6">
@@ -237,7 +213,8 @@ export default function InventoryItemsPage() {
       </div>
 
       {showForm && (
-        <motion.div
+        <motion.form
+          onSubmit={handleSubmit}
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
@@ -248,15 +225,26 @@ export default function InventoryItemsPage() {
             <input
               type="text"
               placeholder="Item Name"
+              value={form.name}
+              onChange={e => setForm({ ...form, name: e.target.value })}
+              required
               className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <input
               type="text"
               placeholder="SKU"
+              value={form.sku}
+              onChange={e => setForm({ ...form, sku: e.target.value })}
+              required
               className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
-            <select className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-              <option>Select Category</option>
+            <select
+              value={form.category}
+              onChange={e => setForm({ ...form, category: e.target.value })}
+              required
+              className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">Select Category</option>
               <option>Electronics</option>
               <option>Furniture</option>
               <option>Accessories</option>
@@ -264,34 +252,64 @@ export default function InventoryItemsPage() {
             <input
               type="number"
               placeholder="Unit Price"
+              value={form.unitPrice}
+              onChange={e => setForm({ ...form, unitPrice: e.target.value })}
+              required
               className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <input
               type="number"
               placeholder="Initial Quantity"
+              value={form.quantity}
+              onChange={e => setForm({ ...form, quantity: e.target.value })}
+              required
               className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <input
               type="number"
               placeholder="Reorder Level"
+              value={form.reorderLevel}
+              onChange={e => setForm({ ...form, reorderLevel: e.target.value })}
+              required
               className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
           <div className="mt-4 flex gap-2 justify-end">
             <button
+              type="button"
               onClick={() => setShowForm(false)}
               className="px-4 py-2 border border-border rounded-lg font-medium hover:bg-secondary transition-colors"
             >
               Cancel
             </button>
-            <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:shadow-lg transition-shadow">
+            <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:shadow-lg transition-shadow">
               Add Item
             </button>
           </div>
-        </motion.div>
+        </motion.form>
       )}
 
-      <DataTable columns={columns} data={mockItems} title="Inventory Items" />
+      <DataTable
+        columns={columns}
+        data={items}
+        title="Inventory Items"
+        actions={(row) => (
+          <motion.button
+            onClick={async () => {
+              if (window.confirm('Delete this item?')) {
+                await fetch(`/api/inventory/items/${row.id}`, { method: 'DELETE' })
+                fetchItems()
+              }
+            }}
+            className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            title="Delete"
+          >
+            <Trash2 className="w-4 h-4" />
+          </motion.button>
+        )}
+      />
     </div>
   )
 }

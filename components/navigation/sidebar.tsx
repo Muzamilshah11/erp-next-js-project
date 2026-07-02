@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/contexts/auth-context'
 
 interface NavItemProps {
   href?: string
@@ -107,6 +108,7 @@ function NavItem({
 }
 
 export function Sidebar() {
+  const { logout } = useAuth()
   const pathname = usePathname()
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     finance: true,
@@ -289,7 +291,10 @@ export function Sidebar() {
           icon={<Settings className="w-4 h-4" />}
           active={pathname === '/settings'}
         />
-        <button className="w-full px-3 py-1.5 rounded-lg text-muted-foreground hover:bg-sidebar-accent flex items-center gap-2.5 transition-colors text-xs font-medium">
+        <button
+          onClick={logout}
+          className="w-full px-3 py-1.5 rounded-lg text-muted-foreground hover:bg-sidebar-accent flex items-center gap-2.5 transition-colors text-xs font-medium"
+        >
           <LogOut className="w-3.5 h-3.5" />
           <span>Logout</span>
         </button>

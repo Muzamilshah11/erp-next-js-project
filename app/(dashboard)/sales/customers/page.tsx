@@ -2,8 +2,8 @@
 
 import { motion } from 'framer-motion'
 import { DataTable } from '@/components/shared/data-table'
-import { Plus, Phone, Mail, MapPin } from 'lucide-react'
-import { useState } from 'react'
+import { Plus, Phone, Mail, MapPin, Trash2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
 interface Customer {
   id: string
@@ -15,59 +15,6 @@ interface Customer {
   balance: number
   status: 'active' | 'inactive'
 }
-
-const mockCustomers: Customer[] = [
-  {
-    id: '1',
-    name: 'ABC Trading Co.',
-    email: 'contact@abctrading.pk',
-    phone: '+92-21-123456',
-    city: 'Karachi',
-    totalSales: 450000,
-    balance: 85000,
-    status: 'active',
-  },
-  {
-    id: '2',
-    name: 'XYZ Enterprises',
-    email: 'info@xyzent.pk',
-    phone: '+92-42-654321',
-    city: 'Lahore',
-    totalSales: 320000,
-    balance: -25000,
-    status: 'active',
-  },
-  {
-    id: '3',
-    name: 'Tech Solutions Ltd.',
-    email: 'sales@techsol.pk',
-    phone: '+92-51-987654',
-    city: 'Islamabad',
-    totalSales: 210000,
-    balance: 0,
-    status: 'active',
-  },
-  {
-    id: '4',
-    name: 'Global Imports',
-    email: 'contact@globalimports.pk',
-    phone: '+92-300-1234567',
-    city: 'Faisalabad',
-    totalSales: 550000,
-    balance: 150000,
-    status: 'active',
-  },
-  {
-    id: '5',
-    name: 'Retail Plus',
-    email: 'support@retailplus.pk',
-    phone: '+92-21-5554321',
-    city: 'Karachi',
-    totalSales: 180000,
-    balance: -45000,
-    status: 'inactive',
-  },
-]
 
 const columns = [
   {
@@ -159,7 +106,31 @@ const columns = [
 ]
 
 export default function CustomersPage() {
+  const [customers, setCustomers] = useState<Customer[]>([])
   const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState({ name: '', email: '', phone: '', city: '' })
+
+  const fetchCustomers = async () => {
+    const res = await fetch('/api/sales/customers')
+    const data = await res.json()
+    setCustomers(data.customers)
+  }
+
+  useEffect(() => { fetchCustomers() }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const res = await fetch('/api/sales/customers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...form, totalSales: 0, balance: 0, status: 'active' }),
+    })
+    if (res.ok) {
+      setShowForm(false)
+      setForm({ name: '', email: '', phone: '', city: '' })
+      fetchCustomers()
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -185,7 +156,8 @@ export default function CustomersPage() {
       </motion.div>
 
       {showForm && (
-        <motion.div
+        <motion.form
+          onSubmit={handleSubmit}
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
@@ -196,44 +168,72 @@ export default function CustomersPage() {
             <input
               type="text"
               placeholder="Company Name"
+              value={form.name}
+              onChange={e => setForm({ ...form, name: e.target.value })}
+              required
               className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <input
               type="email"
               placeholder="Email"
+              value={form.email}
+              onChange={e => setForm({ ...form, email: e.target.value })}
+              required
               className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <input
               type="tel"
               placeholder="Phone"
+              value={form.phone}
+              onChange={e => setForm({ ...form, phone: e.target.value })}
+              required
               className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <input
               type="text"
               placeholder="City"
+              value={form.city}
+              onChange={e => setForm({ ...form, city: e.target.value })}
+              required
               className="px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <input
-              type="text"
-              placeholder="Business Registration"
-              className="col-span-2 px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
           <div className="mt-4 flex gap-2 justify-end">
             <button
+              type="button"
               onClick={() => setShowForm(false)}
               className="px-4 py-2 border border-border rounded-lg font-medium hover:bg-secondary transition-colors"
             >
               Cancel
             </button>
-            <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:shadow-lg transition-shadow">
+            <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:shadow-lg transition-shadow">
               Save Customer
             </button>
           </div>
-        </motion.div>
+        </motion.form>
       )}
 
-      <DataTable columns={columns} data={mockCustomers} title="All Customers" />
+      <DataTable
+        columns={columns}
+        data={customers}
+        title="All Customers"
+        actions={(row) => (
+          <motion.button
+            onClick={async () => {
+              if (window.confirm('Delete this customer?')) {
+                await fetch(`/api/sales/customers/${row.id}`, { method: 'DELETE' })
+                fetchCustomers()
+              }
+            }}
+            className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            title="Delete"
+          >
+            <Trash2 className="w-4 h-4" />
+          </motion.button>
+        )}
+      />
     </div>
   )
 }
