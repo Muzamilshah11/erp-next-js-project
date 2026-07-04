@@ -2,12 +2,33 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 
-export async function GET() {
+export async function GET(request: Request) {
   const user = await getSession()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const customers = await prisma.customer.findMany({ orderBy: { createdAt: 'desc' } })
-  return NextResponse.json({ customers })
+  try {
+    const { searchParams } = new URL(request.url)
+    const q = searchParams.get('q')?.trim()
+
+    const where = q
+      ? {
+          OR: [
+            { name: { contains: q, mode: 'insensitive' } },
+            { email: { contains: q, mode: 'insensitive' } },
+            { phone: { contains: q, mode: 'insensitive' } },
+            { city: { contains: q, mode: 'insensitive' } },
+          ],
+        }
+      : {}
+
+    const customers = await prisma.customer.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+    })
+    return NextResponse.json({ customers })
+  } catch {
+    return NextResponse.json({ error: 'Failed to fetch customers' }, { status: 500 })
+  }
 }
 
 export async function POST(request: Request) {
@@ -16,9 +37,12 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
+    if (!body.name || !body.email) {
+      return NextResponse.json({ error: 'Name and email are required' }, { status: 400 })
+    }
     const customer = await prisma.customer.create({ data: body })
     return NextResponse.json({ customer })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to create customer' }, { status: 500 })
   }
 }

@@ -115,6 +115,7 @@ export function Sidebar() {
     sales: false,
     purchases: false,
     inventory: false,
+    hr: false,
   })
 
   const toggleSection = (section: string) => {
@@ -184,8 +185,13 @@ export function Sidebar() {
     },
     {
       label: 'HR',
-      href: '/hr',
+      expandable: true,
+      section: 'hr',
       icon: <Users className="w-4 h-4" />,
+      children: [
+        { label: 'Employees', href: '/hr' },
+        { label: 'Payroll', href: '/hr/payroll' },
+      ]
     },
   ]
 

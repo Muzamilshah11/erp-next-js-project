@@ -16,6 +16,8 @@ interface DataTableProps<T extends { id: string }> {
   data: T[]
   title?: string
   actions?: (row: T) => React.ReactNode
+  selectable?: { selected: Set<string>; onToggle: (id: string) => void }
+  emptyMessage?: string
 }
 
 type SortDirection = 'asc' | 'desc' | null
@@ -25,6 +27,8 @@ export function DataTable<T extends { id: string }>({
   data,
   title,
   actions,
+  selectable,
+  emptyMessage,
 }: DataTableProps<T>) {
   const [sortKey, setSortKey] = useState<keyof T | null>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>(null)
@@ -79,6 +83,7 @@ export function DataTable<T extends { id: string }>({
         <table className="w-full">
           <thead>
             <tr className="border-b border-black/10 dark:border-black/20 bg-secondary/30 hover:bg-secondary/50 transition-colors">
+              {selectable && <th className="px-4 py-2 w-10"></th>}
               {columns.map(column => (
                 <th
                   key={String(column.key)}
@@ -122,6 +127,11 @@ export function DataTable<T extends { id: string }>({
                 transition={{ delay: idx * 0.02, duration: 0.2 }}
                 whileHover={{ backgroundColor: 'rgba(15, 23, 42, 0.05)' }}
               >
+                {selectable && (
+                  <td className="px-4 py-2 w-10">
+                    <input type="checkbox" className="rounded border-gray-300" checked={selectable.selected.has(row.id)} onChange={() => selectable.onToggle(row.id)} />
+                  </td>
+                )}
                 {columns.map(column => (
                   <td
                     key={String(column.key)}
@@ -146,12 +156,12 @@ export function DataTable<T extends { id: string }>({
         
         {data.length === 0 && (
           <motion.div
-            className="text-center py-8"
+            className="text-center py-8 px-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
-            <p className="text-muted-foreground text-sm">No data available</p>
+            <p className="text-muted-foreground text-sm">{emptyMessage || 'No data available'}</p>
           </motion.div>
         )}
       </div>
