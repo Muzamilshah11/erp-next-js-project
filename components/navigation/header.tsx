@@ -1,35 +1,67 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Bell, Search, User, Settings } from 'lucide-react'
+import { Bell, Search, User, Settings, BarChart3 } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
+import { CommandPalette } from './command-palette'
+import { useState, useEffect } from 'react'
 
 export function Header() {
   const { user } = useAuth()
+  const [company, setCompany] = useState<{ companyName?: string; logoUrl?: string } | null>(null)
+
+  useEffect(() => {
+    fetch('/api/setup/company')
+      .then(r => r.json())
+      .then(d => setCompany(d.company))
+      .catch(() => {})
+  }, [])
 
   return (
-    <motion.header
-      className="h-16 bg-card border-b border-border flex items-center justify-between px-6 shadow-sm"
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      {/* Search Bar */}
-      <motion.div
-        className="flex-1 max-w-md"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1, duration: 0.3 }}
+    <>
+      <CommandPalette />
+      <motion.header
+        className="h-16 bg-card border-b border-border flex items-center justify-between px-6 shadow-sm"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
       >
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search transactions, customers, orders..."
-            className="w-full pl-10 pr-4 py-2 bg-secondary border border-input rounded-lg text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-          />
+        {/* Company Logo */}
+        <div className="flex items-center gap-3 mr-4">
+          {company?.logoUrl ? (
+            <img
+              src={company.logoUrl}
+              alt={company.companyName || 'Company'}
+              className="w-8 h-8 rounded-lg object-contain bg-slate-800"
+            />
+          ) : (
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
+              <BarChart3 className="w-4 h-4 text-white" />
+            </div>
+          )}
         </div>
-      </motion.div>
+
+        {/* Search Bar */}
+        <motion.div
+          className="flex-1 max-w-md"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.3 }}
+        >
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              readOnly
+              placeholder="Search transactions, customers, orders...  (Ctrl+K)"
+              className="w-full pl-10 pr-4 py-2 bg-secondary border border-input rounded-lg text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all cursor-pointer"
+              onClick={() => {
+                const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, metaKey: true, bubbles: true })
+                document.dispatchEvent(event)
+              }}
+            />
+          </div>
+        </motion.div>
 
       {/* Right Actions */}
       <motion.div
@@ -81,5 +113,6 @@ export function Header() {
         </motion.div>
       </motion.div>
     </motion.header>
+    </>
   )
 }

@@ -8,7 +8,16 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
   try {
     const { id } = await params
-    const employee = await prisma.employee.findUnique({ where: { id } })
+    const employee = await prisma.employee.findUnique({
+      where: { id },
+      include: {
+        department: { select: { id: true, name: true } },
+        designation: { select: { id: true, name: true } },
+        grade: { select: { id: true, name: true } },
+        allowances: true,
+        deductions: true,
+      },
+    })
     if (!employee) return NextResponse.json({ error: 'Not found' }, { status: 404 })
     return NextResponse.json({ employee })
   } catch {
@@ -26,14 +35,25 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const employee = await prisma.employee.update({
       where: { id },
       data: {
+        employeeNo: body.employeeNo,
         name: body.name,
         email: body.email,
         phone: body.phone,
-        designation: body.designation,
-        department: body.department,
-        salary: body.salary,
+        designationId: body.designationId || null,
+        departmentId: body.departmentId || null,
+        gradeId: body.gradeId || null,
+        salary: parseFloat(body.salary),
         joinDate: body.joinDate ? new Date(body.joinDate) : undefined,
         status: body.status,
+        bankName: body.bankName,
+        bankAccount: body.bankAccount,
+        bankBranch: body.bankBranch,
+        bankCode: body.bankCode,
+        overtimeRate: body.overtimeRate ? parseFloat(body.overtimeRate) : null,
+      },
+      include: {
+        department: { select: { id: true, name: true } },
+        designation: { select: { id: true, name: true } },
       },
     })
     return NextResponse.json({ employee })

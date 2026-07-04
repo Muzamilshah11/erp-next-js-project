@@ -2,50 +2,28 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { DataTable } from '@/components/shared/data-table'
-import { Plus, Mail, Phone, Trash2, Pencil, Search, X, Loader2, PlusCircle, MinusCircle } from 'lucide-react'
+import { Plus, Mail, Phone, Trash2, Pencil, Search, X, Loader2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
-interface Employee {
-  id: string; name: string; email: string; phone: string
-  designation: string; department: string; joinDate: string
-  salary: number; status: 'active' | 'inactive'
-  allowances?: Allowance[]; deductions?: Deduction[]
-}
+interface Employee { id: string; employeeNo: string | null; name: string; email: string; phone: string; designation: { id: string; name: string } | null; department: { id: string; name: string } | null; grade: { id: string; name: string } | null; joinDate: string; salary: number; status: string; bankName: string | null; bankAccount: string | null; bankBranch: string | null; bankCode: string | null; overtimeRate: number | null; allowances: Allowance[]; deductions: Deduction[] }
 interface Allowance { id: string; type: string; amount: number; employeeId: string }
 interface Deduction { id: string; type: string; amount: number; employeeId: string }
 
 const columns = [
-  { key: 'name' as const, label: 'Employee Name', sortable: true,
-    render: (value: string) => (
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center text-white text-sm font-bold">{value.charAt(0)}</div>
-        <span className="font-medium">{value}</span>
-      </div>
-    ),
-  },
-  { key: 'email' as const, label: 'Email',
-    render: (value: string) => <span className="flex items-center gap-1 text-sm"><Mail className="w-3.5 h-3.5 text-muted-foreground" />{value}</span>,
-  },
-  { key: 'phone' as const, label: 'Phone',
-    render: (value: string) => <span className="flex items-center gap-1 text-sm"><Phone className="w-3.5 h-3.5 text-muted-foreground" />{value}</span>,
-  },
-  { key: 'designation' as const, label: 'Designation', sortable: true },
-  { key: 'department' as const, label: 'Department', sortable: true,
-    render: (value: string) => <span className="px-2 py-1 bg-secondary/50 rounded text-sm font-medium">{value}</span>,
-  },
-  { key: 'joinDate' as const, label: 'Join Date', sortable: true,
-    render: (value: string) => new Date(value).toLocaleDateString('en-PK'),
-  },
-  { key: 'salary' as const, label: 'Basic Salary', sortable: true,
-    render: (value: number) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(value),
-  },
-  { key: 'status' as const, label: 'Status',
-    render: (value: string) => (
-      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-        value === 'active' ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400'
-      }`}>{value}</span>
-    ),
-  },
+  { key: 'name' as const, label: 'Employee Name', sortable: true, render: (value: string) => (
+    <div className="flex items-center gap-2">
+      <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center text-white text-sm font-bold">{value.charAt(0)}</div>
+      <span className="font-medium">{value}</span>
+    </div>
+  )},
+  { key: 'employeeNo' as const, label: 'Emp #', sortable: true, render: (v: string | null) => <span className="text-xs text-muted-foreground">{v || '-'}</span> },
+  { key: 'email' as const, label: 'Email', render: (value: string) => <span className="flex items-center gap-1 text-sm"><Mail className="w-3.5 h-3.5 text-muted-foreground" />{value}</span> },
+  { key: 'phone' as const, label: 'Phone', render: (value: string) => <span className="flex items-center gap-1 text-sm"><Phone className="w-3.5 h-3.5 text-muted-foreground" />{value}</span> },
+  { key: 'designation' as const, label: 'Designation', sortable: true, render: (v: { name: string } | null) => v?.name || '-' },
+  { key: 'department' as const, label: 'Department', sortable: true, render: (v: { name: string } | null) => v?.name ? <span className="px-2 py-1 bg-secondary/50 rounded text-sm font-medium">{v.name}</span> : '-' },
+  { key: 'joinDate' as const, label: 'Join Date', sortable: true, render: (v: string) => new Date(v).toLocaleDateString('en-PK') },
+  { key: 'salary' as const, label: 'Salary', sortable: true, render: (v: number) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(v) },
+  { key: 'status' as const, label: 'Status', render: (v: string) => (<span className={`px-3 py-1 rounded-full text-xs font-medium ${v === 'active' ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400'}`}>{v}</span>) },
 ]
 
 const allowanceTypes = ['house-rent', 'medical', 'transport', 'other']
@@ -53,11 +31,14 @@ const deductionTypes = ['tax', 'loan', 'other']
 
 export default function HRPage() {
   const [employees, setEmployees] = useState<Employee[]>([])
+  const [departments, setDepartments] = useState<{ id: string; name: string }[]>([])
+  const [designations, setDesignations] = useState<{ id: string; name: string }[]>([])
+  const [grades, setGrades] = useState<{ id: string; name: string }[]>([])
   const [loading, setLoading] = useState(true); const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false); const [editing, setEditing] = useState<Employee | null>(null)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({ name: '', email: '', phone: '', department: '', designation: '', salary: '', joinDate: '', status: 'active' })
+  const [form, setForm] = useState({ employeeNo: '', name: '', email: '', phone: '', departmentId: '', designationId: '', gradeId: '', salary: '', joinDate: '', status: 'active', bankName: '', bankAccount: '', bankBranch: '', bankCode: '', overtimeRate: '' })
   const [allowances, setAllowances] = useState<{ type: string; amount: string }[]>([])
   const [deductions, setDeductions] = useState<{ type: string; amount: string }[]>([])
 
@@ -66,46 +47,48 @@ export default function HRPage() {
     try {
       const url = q ? `/api/hr/employees?q=${encodeURIComponent(q)}` : '/api/hr/employees'
       const res = await fetch(url); const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to fetch')
+      if (!res.ok) throw new Error(data.error || 'Failed')
       setEmployees(data.employees || [])
-    } catch (err) { setError(err instanceof Error ? err.message : 'Failed to load') }
-    finally { setLoading(false) }
+    } catch (err) { setError(err instanceof Error ? err.message : 'Failed') } finally { setLoading(false) }
   }
 
-  useEffect(() => { fetchEmployees() }, [])
+  const fetchSetup = async () => {
+    try {
+      const [dRes, desRes, gRes] = await Promise.all([
+        fetch('/api/hr/setup/departments'), fetch('/api/hr/setup/designations'), fetch('/api/hr/setup/grades'),
+      ])
+      const dData = await dRes.json(); const desData = await desRes.json(); const gData = await gRes.json()
+      setDepartments(dData.departments || []); setDesignations(desData.designations || []); setGrades(gData.grades || [])
+    } catch {}
+  }
+
+  useEffect(() => { fetchEmployees(); fetchSetup() }, [])
   useEffect(() => { const t = setTimeout(() => fetchEmployees(search), 300); return () => clearTimeout(t) }, [search])
 
   const fetchAllowancesDeductions = async (empId: string) => {
     try {
-      const [aRes, dRes] = await Promise.all([
-        fetch(`/api/hr/allowances`),
-        fetch(`/api/hr/deductions`),
-      ])
+      const [aRes, dRes] = await Promise.all([fetch('/api/hr/allowances'), fetch('/api/hr/deductions')])
       const aData = await aRes.json(); const dData = await dRes.json()
-      const empAllowances = (aData.allowances || []).filter((a: Allowance) => a.employeeId === empId)
-      const empDeductions = (dData.deductions || []).filter((d: Deduction) => d.employeeId === empId)
-      setAllowances(empAllowances.map((a: Allowance) => ({ type: a.type, amount: String(a.amount) })))
-      setDeductions(empDeductions.map((d: Deduction) => ({ type: d.type, amount: String(d.amount) })))
-    } catch {
-      setAllowances([]); setDeductions([])
-    }
+      setAllowances((aData.allowances || []).filter((a: Allowance) => a.employeeId === empId).map((a: Allowance) => ({ type: a.type, amount: String(a.amount) })))
+      setDeductions((dData.deductions || []).filter((d: Deduction) => d.employeeId === empId).map((d: Deduction) => ({ type: d.type, amount: String(d.amount) })))
+    } catch { setAllowances([]); setDeductions([]) }
   }
 
   const openNew = () => {
     setEditing(null)
-    setForm({ name: '', email: '', phone: '', department: '', designation: '', salary: '', joinDate: new Date().toISOString().split('T')[0], status: 'active' })
-    setAllowances([]); setDeductions([])
-    setShowForm(true)
+    setForm({ employeeNo: '', name: '', email: '', phone: '', departmentId: '', designationId: '', gradeId: '', salary: '', joinDate: new Date().toISOString().split('T')[0], status: 'active', bankName: '', bankAccount: '', bankBranch: '', bankCode: '', overtimeRate: '' })
+    setAllowances([]); setDeductions([]); setShowForm(true)
   }
   const openEdit = async (emp: Employee) => {
     setEditing(emp)
     setForm({
-      name: emp.name, email: emp.email, phone: emp.phone, department: emp.department,
-      designation: emp.designation, salary: String(emp.salary),
-      joinDate: new Date(emp.joinDate).toISOString().split('T')[0], status: emp.status,
+      employeeNo: emp.employeeNo || '', name: emp.name, email: emp.email, phone: emp.phone,
+      departmentId: emp.department?.id || '', designationId: emp.designation?.id || '', gradeId: emp.grade?.id || '',
+      salary: String(emp.salary), joinDate: new Date(emp.joinDate).toISOString().split('T')[0], status: emp.status,
+      bankName: emp.bankName || '', bankAccount: emp.bankAccount || '', bankBranch: emp.bankBranch || '', bankCode: emp.bankCode || '',
+      overtimeRate: emp.overtimeRate ? String(emp.overtimeRate) : '',
     })
-    await fetchAllowancesDeductions(emp.id)
-    setShowForm(true)
+    await fetchAllowancesDeductions(emp.id); setShowForm(true)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -115,50 +98,34 @@ export default function HRPage() {
       const url = editing ? `/api/hr/employees/${editing.id}` : '/api/hr/employees'
       const method = editing ? 'PUT' : 'POST'
       const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-      if (!res.ok) throw new Error('Failed to save employee')
-
+      if (!res.ok) throw new Error('Failed')
       const data = await res.json()
       const empId = editing?.id || data.employee.id
-
-      // Save allowances
       for (const a of allowances) {
-        const existing = editing ? (await (await fetch(`/api/hr/allowances`)).json()).allowances.filter((x: Allowance) => x.employeeId === empId) : []
+        const existing = editing ? (await (await fetch('/api/hr/allowances')).json()).allowances.filter((x: Allowance) => x.employeeId === empId) : []
         const match = existing.find((x: Allowance) => x.type === a.type)
-        if (match) {
-          await fetch(`/api/hr/allowances/${match.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: a.type, amount: parseFloat(a.amount) || 0 }) })
-        } else {
-          await fetch(`/api/hr/allowances`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ employeeId: empId, type: a.type, amount: parseFloat(a.amount) || 0 }) })
-        }
+        if (match) await fetch(`/api/hr/allowances/${match.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: a.type, amount: parseFloat(a.amount) || 0 }) })
+        else await fetch('/api/hr/allowances', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ employeeId: empId, type: a.type, amount: parseFloat(a.amount) || 0 }) })
       }
-
-      // Save deductions
       for (const d of deductions) {
-        const existing = editing ? (await (await fetch(`/api/hr/deductions`)).json()).deductions.filter((x: Deduction) => x.employeeId === empId) : []
+        const existing = editing ? (await (await fetch('/api/hr/deductions')).json()).deductions.filter((x: Deduction) => x.employeeId === empId) : []
         const match = existing.find((x: Deduction) => x.type === d.type)
-        if (match) {
-          await fetch(`/api/hr/deductions/${match.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: d.type, amount: parseFloat(d.amount) || 0 }) })
-        } else {
-          await fetch(`/api/hr/deductions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ employeeId: empId, type: d.type, amount: parseFloat(d.amount) || 0 }) })
-        }
+        if (match) await fetch(`/api/hr/deductions/${match.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: d.type, amount: parseFloat(d.amount) || 0 }) })
+        else await fetch('/api/hr/deductions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ employeeId: empId, type: d.type, amount: parseFloat(d.amount) || 0 }) })
       }
-
-      setShowForm(false); setEditing(null)
-      setForm({ name: '', email: '', phone: '', department: '', designation: '', salary: '', joinDate: '', status: 'active' })
-      setAllowances([]); setDeductions([])
-      fetchEmployees(search)
-    } catch { setError('Failed to save employee') } finally { setSaving(false) }
+      setShowForm(false); setEditing(null); fetchEmployees(search)
+    } catch { setError('Failed to save') } finally { setSaving(false) }
   }
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Delete this employee?')) return
     try { const res = await fetch(`/api/hr/employees/${id}`, { method: 'DELETE' }); if (!res.ok) throw new Error(); fetchEmployees(search) }
-    catch { setError('Failed to delete employee') }
+    catch { setError('Failed') }
   }
 
   const totalEmployees = employees.length
   const activeEmployees = employees.filter(e => e.status === 'active').length
   const totalPayroll = employees.reduce((sum, e) => sum + e.salary, 0)
-
   const totalAllowanceAmount = allowances.reduce((s, a) => s + (parseFloat(a.amount) || 0), 0)
   const totalDeductionAmount = deductions.reduce((s, d) => s + (parseFloat(d.amount) || 0), 0)
   const basicSalary = parseFloat(form.salary) || 0
@@ -168,10 +135,7 @@ export default function HRPage() {
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Human Resources</h1>
-          <p className="text-muted-foreground mt-1">Manage employees and payroll</p>
-        </div>
+        <div><h1 className="text-3xl font-bold text-foreground">Human Resources</h1><p className="text-muted-foreground mt-1">Manage employees and payroll</p></div>
         <motion.button onClick={openNew} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium flex items-center gap-2 hover:shadow-lg" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
           <Plus className="w-4 h-4" /> Add Employee
         </motion.button>
@@ -183,11 +147,11 @@ export default function HRPage() {
         <SummaryCard label="Monthly Payroll" value={new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(totalPayroll)} color="purple" />
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="relative max-w-sm">
+      <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <input type="text" placeholder="Search employees..." value={search} onChange={e => setSearch(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-input rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
         {search && <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>}
-      </motion.div>
+      </div>
 
       {error && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg text-sm">{error} <button onClick={() => setError('')} className="ml-2 underline">Dismiss</button></motion.div>}
 
@@ -195,85 +159,74 @@ export default function HRPage() {
         {showForm && (
           <motion.form onSubmit={handleSubmit} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-card border border-border rounded-xl p-6 shadow-sm overflow-hidden">
             <h3 className="text-lg font-semibold text-foreground mb-4">{editing ? 'Edit Employee' : 'Add New Employee'}</h3>
-
-            {/* Basic Info */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <input type="text" placeholder="Employee No" value={form.employeeNo} onChange={e => setForm({ ...form, employeeNo: e.target.value })} className="px-4 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
               <input type="text" placeholder="Full Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required className="px-4 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
               <input type="email" placeholder="Email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required className="px-4 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
               <input type="tel" placeholder="Phone" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} required className="px-4 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
-              <select value={form.department} onChange={e => setForm({ ...form, department: e.target.value })} required className="px-4 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary">
+              <select value={form.departmentId} onChange={e => setForm({ ...form, departmentId: e.target.value })} className="px-4 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary">
                 <option value="">Select Department</option>
-                <option>Finance</option><option>Sales</option><option>Inventory</option><option>HR</option><option>Operations</option>
+                {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
               </select>
-              <input type="text" placeholder="Designation" value={form.designation} onChange={e => setForm({ ...form, designation: e.target.value })} required className="px-4 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
+              <select value={form.designationId} onChange={e => setForm({ ...form, designationId: e.target.value })} className="px-4 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary">
+                <option value="">Select Designation</option>
+                {designations.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+              </select>
+              <select value={form.gradeId} onChange={e => setForm({ ...form, gradeId: e.target.value })} className="px-4 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary">
+                <option value="">Select Grade</option>
+                {grades.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+              </select>
               <input type="number" placeholder="Basic Salary" value={form.salary} onChange={e => setForm({ ...form, salary: e.target.value })} required className="px-4 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
               <input type="date" value={form.joinDate} onChange={e => setForm({ ...form, joinDate: e.target.value })} required className="px-4 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
               <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} className="px-4 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary">
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="active">Active</option><option value="inactive">Inactive</option>
               </select>
+              <input type="text" placeholder="Bank Name" value={form.bankName} onChange={e => setForm({ ...form, bankName: e.target.value })} className="px-4 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
+              <input type="text" placeholder="Bank Account" value={form.bankAccount} onChange={e => setForm({ ...form, bankAccount: e.target.value })} className="px-4 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
+              <input type="text" placeholder="Bank Branch" value={form.bankBranch} onChange={e => setForm({ ...form, bankBranch: e.target.value })} className="px-4 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
+              <input type="text" placeholder="Bank Code" value={form.bankCode} onChange={e => setForm({ ...form, bankCode: e.target.value })} className="px-4 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
+              <input type="number" step="0.1" placeholder="Overtime Rate" value={form.overtimeRate} onChange={e => setForm({ ...form, overtimeRate: e.target.value })} className="px-4 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
             </div>
-
-            {/* Allowances */}
             <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-semibold text-foreground">Allowances</h4>
-              </div>
+              <h4 className="text-sm font-semibold text-foreground mb-2">Allowances</h4>
               <div className="space-y-2">
                 {allowanceTypes.map(type => {
                   const a = allowances.find(x => x.type === type)
-                  return (
-                    <div key={type} className="flex items-center gap-2">
-                      <span className="w-28 text-sm capitalize text-muted-foreground">{type.replace('-', ' ')}</span>
-                      <input type="number" placeholder="Amount" value={a?.amount || ''} onChange={e => {
-                        const updated = [...allowances.filter(x => x.type !== type)]
-                        if (e.target.value) updated.push({ type, amount: e.target.value })
-                        setAllowances(updated)
-                      }} className="flex-1 px-3 py-1.5 border border-input rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
-                    </div>
-                  )
+                  return <div key={type} className="flex items-center gap-2">
+                    <span className="w-28 text-sm capitalize text-muted-foreground">{type.replace('-', ' ')}</span>
+                    <input type="number" placeholder="Amount" value={a?.amount || ''} onChange={e => {
+                      const updated = [...allowances.filter(x => x.type !== type)]
+                      if (e.target.value) updated.push({ type, amount: e.target.value })
+                      setAllowances(updated)
+                    }} className="flex-1 px-3 py-1.5 border border-input rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
+                  </div>
                 })}
-                <div className="flex justify-end text-sm font-medium text-foreground pt-1 border-t border-border">
-                  Total Allowances: <span className="ml-1 text-green-600">{totalAllowanceAmount.toLocaleString()}</span>
-                </div>
+                <div className="flex justify-end text-sm font-medium text-foreground pt-1 border-t border-border">Total: <span className="ml-1 text-green-600">{totalAllowanceAmount.toLocaleString()}</span></div>
               </div>
             </div>
-
-            {/* Deductions */}
             <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-semibold text-foreground">Deductions</h4>
-              </div>
+              <h4 className="text-sm font-semibold text-foreground mb-2">Deductions</h4>
               <div className="space-y-2">
                 {deductionTypes.map(type => {
                   const d = deductions.find(x => x.type === type)
-                  return (
-                    <div key={type} className="flex items-center gap-2">
-                      <span className="w-28 text-sm capitalize text-muted-foreground">{type}</span>
-                      <input type="number" placeholder="Amount" value={d?.amount || ''} onChange={e => {
-                        const updated = [...deductions.filter(x => x.type !== type)]
-                        if (e.target.value) updated.push({ type, amount: e.target.value })
-                        setDeductions(updated)
-                      }} className="flex-1 px-3 py-1.5 border border-input rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
-                    </div>
-                  )
+                  return <div key={type} className="flex items-center gap-2">
+                    <span className="w-28 text-sm capitalize text-muted-foreground">{type}</span>
+                    <input type="number" placeholder="Amount" value={d?.amount || ''} onChange={e => {
+                      const updated = [...deductions.filter(x => x.type !== type)]
+                      if (e.target.value) updated.push({ type, amount: e.target.value })
+                      setDeductions(updated)
+                    }} className="flex-1 px-3 py-1.5 border border-input rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
+                  </div>
                 })}
-                <div className="flex justify-end text-sm font-medium text-foreground pt-1 border-t border-border">
-                  Total Deductions: <span className="ml-1 text-red-600">-{totalDeductionAmount.toLocaleString()}</span>
-                </div>
+                <div className="flex justify-end text-sm font-medium text-foreground pt-1 border-t border-border">Total: <span className="ml-1 text-red-600">-{totalDeductionAmount.toLocaleString()}</span></div>
               </div>
             </div>
-
-            {/* Salary Summary */}
             <div className="bg-muted/30 rounded-lg p-4 mb-4 space-y-1 text-sm">
               <div className="flex justify-between"><span className="text-muted-foreground">Basic Salary</span><span className="font-semibold">{basicSalary.toLocaleString()}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Total Allowances</span><span className="font-semibold text-green-600">+{totalAllowanceAmount.toLocaleString()}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Total Deductions</span><span className="font-semibold text-red-600">-{totalDeductionAmount.toLocaleString()}</span></div>
-              <div className="flex justify-between border-t border-border pt-1 text-base font-bold text-foreground">
-                <span>Net Pay</span><span>{netPay.toLocaleString()}</span>
-              </div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Allowances</span><span className="font-semibold text-green-600">+{totalAllowanceAmount.toLocaleString()}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Deductions</span><span className="font-semibold text-red-600">-{totalDeductionAmount.toLocaleString()}</span></div>
+              <div className="flex justify-between border-t border-border pt-1 text-base font-bold text-foreground"><span>Net Pay</span><span>{netPay.toLocaleString()}</span></div>
             </div>
-
             <div className="flex gap-2 justify-end">
               <button type="button" onClick={() => { setShowForm(false); setEditing(null); setAllowances([]); setDeductions([]) }} className="px-4 py-2 border border-border rounded-lg font-medium hover:bg-secondary">Cancel</button>
               <button type="submit" disabled={saving} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:shadow-lg disabled:opacity-50 flex items-center gap-2">
@@ -285,7 +238,7 @@ export default function HRPage() {
       </AnimatePresence>
 
       {loading ? (
-        <div className="bg-card rounded-xl border border-border p-12 text-center"><Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" /><p className="text-muted-foreground">Loading employees...</p></div>
+        <div className="bg-card rounded-xl border border-border p-12 text-center"><Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" /><p className="text-muted-foreground">Loading...</p></div>
       ) : (
         <DataTable columns={columns} data={employees} title="Employees"
           actions={(row) => (

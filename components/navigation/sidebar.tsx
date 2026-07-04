@@ -6,7 +6,9 @@ import { motion } from 'framer-motion'
 import {
   BarChart3,
   Briefcase,
+  Building2,
   DollarSign,
+  Headphones,
   Home,
   Package,
   ShoppingCart,
@@ -14,8 +16,17 @@ import {
   Settings,
   ChevronDown,
   LogOut,
+  Calendar,
+  Clock,
+  Wallet,
+  Calculator,
+  FileText,
+  ClipboardList,
+  TrendingUp,
+  ImageIcon,
+  Wrench,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/auth-context'
 
@@ -110,12 +121,25 @@ function NavItem({
 export function Sidebar() {
   const { logout } = useAuth()
   const pathname = usePathname()
+  const [company, setCompany] = useState<{ companyName?: string; logoUrl?: string } | null>(null)
+
+  useEffect(() => {
+    fetch('/api/setup/company')
+      .then(r => r.json())
+      .then(d => setCompany(d.company))
+      .catch(() => {})
+  }, [])
+
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     finance: true,
     sales: false,
     purchases: false,
     inventory: false,
     hr: false,
+    manufacturing: false,
+    'fixed-assets': false,
+    crm: false,
+    setup: false,
   })
 
   const toggleSection = (section: string) => {
@@ -141,8 +165,11 @@ export function Sidebar() {
       children: [
         { label: 'Chart of Accounts', href: '/finance/chart-of-accounts' },
         { label: 'Journal Entries', href: '/finance/journal-entries' },
+        { label: 'Vouchers', href: '/finance/vouchers' },
         { label: 'General Ledger', href: '/finance/ledger' },
         { label: 'Bank Reconciliation', href: '/finance/bank-reconciliation' },
+        { label: 'Outstanding Cheques', href: '/finance/outstanding-cheques' },
+        { label: 'Budgets', href: '/finance/budgets' },
         { label: 'Reports', href: '/finance/reports' },
       ]
     },
@@ -157,6 +184,11 @@ export function Sidebar() {
         { label: 'Orders', href: '/sales/orders' },
         { label: 'Invoices', href: '/sales/invoices' },
         { label: 'Delivery Notes', href: '/sales/delivery-notes' },
+        { label: 'Credit Notes', href: '/sales/credit-notes' },
+        { label: 'Payments', href: '/sales/payments' },
+        { label: 'Allocations', href: '/sales/allocations' },
+        { label: 'Persons & Groups', href: '/sales/persons-groups' },
+        { label: 'Import', href: '/sales/import' },
       ]
     },
     {
@@ -167,8 +199,13 @@ export function Sidebar() {
       children: [
         { label: 'Suppliers', href: '/purchases/suppliers' },
         { label: 'Purchase Orders', href: '/purchases/orders' },
+        { label: 'Outstanding POs', href: '/purchases/outstanding' },
         { label: 'GRN', href: '/purchases/grn' },
         { label: 'Bills', href: '/purchases/bills' },
+        { label: 'Credit Notes', href: '/purchases/credit-notes' },
+        { label: 'Payments', href: '/purchases/payments' },
+        { label: 'Allocations', href: '/purchases/allocations' },
+        { label: 'Import', href: '/purchases/import' },
       ]
     },
     {
@@ -184,6 +221,35 @@ export function Sidebar() {
       ]
     },
     {
+      label: 'Fixed Assets',
+      expandable: true,
+      section: 'fixed-assets',
+      icon: <Building2 className="w-4 h-4" />,
+      children: [
+        { label: 'Categories', href: '/fixed-assets/categories' },
+        { label: 'Classes', href: '/fixed-assets/classes' },
+        { label: 'Assets', href: '/fixed-assets/assets' },
+        { label: 'Transactions', href: '/fixed-assets/transactions' },
+        { label: 'Depreciation', href: '/fixed-assets/depreciation' },
+        { label: 'Inquiries', href: '/fixed-assets/inquiries' },
+      ]
+    },
+    {
+      label: 'CRM',
+      expandable: true,
+      section: 'crm',
+      icon: <Headphones className="w-4 h-4" />,
+      children: [
+        { label: 'Setup', href: '/crm/setup/ticket-status' },
+        { label: 'Tickets', href: '/crm/tickets' },
+        { label: 'Tasks', href: '/crm/tasks' },
+        { label: 'Calls', href: '/crm/calls' },
+        { label: 'Queries', href: '/crm/queries' },
+        { label: 'Knowledge Base', href: '/crm/knowledge-base/articles' },
+        { label: 'Inquiries', href: '/crm/inquiries' },
+      ]
+    },
+    {
       label: 'HR',
       expandable: true,
       section: 'hr',
@@ -191,6 +257,42 @@ export function Sidebar() {
       children: [
         { label: 'Employees', href: '/hr' },
         { label: 'Payroll', href: '/hr/payroll' },
+        { label: 'Setup', href: '/hr/setup' },
+        { label: 'Attendance', href: '/hr/attendance' },
+        { label: 'Leaves', href: '/hr/leaves' },
+        { label: 'Loans', href: '/hr/loans' },
+        { label: 'Overtime', href: '/hr/overtime' },
+        { label: 'Increments', href: '/hr/increments' },
+        { label: 'Gratuity', href: '/hr/gratuity' },
+        { label: 'Final Settlement', href: '/hr/final-settlement' },
+        { label: 'Reports', href: '/hr/reports' },
+      ]
+    },
+    {
+      label: 'Manufacturing',
+      expandable: true,
+      section: 'manufacturing',
+      icon: <Settings className="w-4 h-4" />,
+      children: [
+        { label: 'BOM', href: '/manufacturing/bom' },
+        { label: 'Work Centers', href: '/manufacturing/work-centers' },
+        { label: 'Work Orders', href: '/manufacturing/orders' },
+        { label: 'Inquiries', href: '/manufacturing/inquiries' },
+      ]
+    },
+    {
+      label: 'Setup & Maintenance',
+      expandable: true,
+      section: 'setup',
+      icon: <Wrench className="w-4 h-4" />,
+      children: [
+        { label: 'Company Setup', href: '/settings/company' },
+        { label: 'Display Setup', href: '/settings/display' },
+        { label: 'Tax Rates', href: '/settings/tax-rates' },
+        { label: 'Fiscal Years', href: '/settings/fiscal-years' },
+        { label: 'CSV Templates', href: '/settings/csv-templates' },
+        { label: 'Void Transaction', href: '/settings/void-transaction' },
+        { label: 'Reports Hub', href: '/reports' },
       ]
     },
   ]
@@ -210,12 +312,20 @@ export function Sidebar() {
           transition={{ delay: 0.1, duration: 0.3 }}
           className="flex items-center gap-2"
         >
-          <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
-            <BarChart3 className="w-5 h-5 text-white" />
-          </div>
+          {company?.logoUrl ? (
+            <img
+              src={company.logoUrl}
+              alt={company.companyName || 'Company'}
+              className="w-8 h-8 rounded-lg object-contain bg-slate-800"
+            />
+          ) : (
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-white" />
+            </div>
+          )}
           <div>
-            <h1 className="text-sm font-bold text-foreground">ERP Pro</h1>
-            <p className="text-xs text-muted-foreground">v1.0</p>
+            <h1 className="text-sm font-bold text-foreground">{company?.companyName || 'ERP Pro'}</h1>
+            <p className="text-xs text-muted-foreground">{company ? 'v1.0' : 'Loading...'}</p>
           </div>
         </motion.div>
       </div>

@@ -18,7 +18,7 @@ export async function GET(request: Request) {
 
     const payrolls = await prisma.payroll.findMany({
       where,
-      include: { employee: { select: { id: true, name: true, department: true, designation: true } } },
+      include: { employee: { select: { id: true, name: true, department: { select: { name: true } }, designation: { select: { name: true } } } } },
       orderBy: [{ year: 'desc' }, { month: 'desc' }],
     })
     return NextResponse.json({ payrolls })
@@ -45,7 +45,12 @@ export async function POST(request: Request) {
     const totalAllowances = employee.allowances.reduce((s, a) => s + a.amount, 0)
     const totalDeductions = employee.deductions.reduce((s, d) => s + d.amount, 0)
     const grossPay = employee.salary + totalAllowances
-    const netPay = grossPay - totalDeductions
+    const overtimeAmount = parseFloat(body.overtimeAmount) || 0
+    const loanInstallmentAmount = parseFloat(body.loanInstallmentAmount) || 0
+    const leavesDeduction = parseFloat(body.leavesDeduction) || 0
+    const taxAmount = parseFloat(body.taxAmount) || 0
+    const otherDeductions = parseFloat(body.otherDeductions) || 0
+    const netPay = grossPay - totalDeductions - loanInstallmentAmount - leavesDeduction - taxAmount - otherDeductions
 
     const payroll = await prisma.payroll.create({
       data: {
@@ -55,12 +60,17 @@ export async function POST(request: Request) {
         basicSalary: employee.salary,
         totalAllowances,
         totalDeductions,
+        overtimeAmount,
+        loanInstallmentAmount,
+        leavesDeduction,
+        taxAmount,
+        otherDeductions,
         grossPay,
         netPay,
         status: body.status || 'pending',
         remarks: body.remarks || null,
       },
-      include: { employee: { select: { id: true, name: true, department: true, designation: true } } },
+      include: { employee: { select: { id: true, name: true, department: { select: { name: true } }, designation: { select: { name: true } } } } },
     })
     return NextResponse.json({ payroll })
   } catch {

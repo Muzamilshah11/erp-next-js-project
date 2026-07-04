@@ -2,8 +2,9 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { DataTable } from '@/components/shared/data-table'
-import { Plus, FileText, Trash2, Loader2, XCircle, Download, CheckCircle, Ban } from 'lucide-react'
+import { Plus, FileText, Trash2, Loader2, XCircle, Download, CheckCircle, Ban, Paperclip } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { AttachmentsDialog } from '@/components/shared/attachments-dialog'
 
 interface BillItem { description: string; quantity: number; price: number }
 interface Bill {
@@ -14,13 +15,18 @@ interface Bill {
   date: string; dueDate: string
   amount: number; paid: number; status: string
   items: BillItem[]
+  voidedAt?: string | null
+  voidedBy?: string | null
+  voidReason?: string | null
 }
 
 const statusConfig: Record<string, string> = {
   draft: 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400',
   due: 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400',
+  posted: 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400',
   paid: 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400',
   overdue: 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400',
+  voided: 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400 line-through',
 }
 
 const columns = [
@@ -47,9 +53,17 @@ const columns = [
       new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(value),
   },
   { key: 'status' as const, label: 'Status',
-    render: (value: string) => (
-      <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusConfig[value] || statusConfig.draft}`}>
+    render: (value: string, row: Bill) => (
+      <span
+        className={`px-3 py-1 rounded-full text-xs font-medium ${statusConfig[value] || statusConfig.draft}`}
+        title={value === 'voided' && row.voidReason ? row.voidReason : undefined}
+      >
         {value.charAt(0).toUpperCase() + value.slice(1)}
+        {value === 'voided' && row.voidedAt && (
+          <span className="ml-1 text-[10px] opacity-70">
+            {new Date(row.voidedAt).toLocaleDateString()}
+          </span>
+        )}
       </span>
     ),
   },
@@ -61,6 +75,7 @@ export default function BillsPage() {
   const [loading, setLoading] = useState(true); const [error, setError] = useState('')
   const [showForm, setShowForm] = useState(false); const [editing, setEditing] = useState<Bill | null>(null)
   const [saving, setSaving] = useState(false)
+  const [attachBill, setAttachBill] = useState<Bill | null>(null)
   const [form, setForm] = useState({ supplierId: '', date: '', dueDate: '', amount: '', poId: '', grnId: '', items: [] as { description: string; quantity: number; price: number }[] })
 
   const fetchData = async () => {
@@ -172,10 +187,20 @@ export default function BillsPage() {
                   <motion.button onClick={() => handleStatus(row.id, 'overdue')} className="p-2 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg" whileHover={{ scale: 1.1 }} title="Mark Overdue"><Ban className="w-4 h-4" /></motion.button>
                 </>
               )}
+              <motion.button onClick={() => setAttachBill(row)} className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg" whileHover={{ scale: 1.1 }} title="Attachments"><Paperclip className="w-4 h-4" /></motion.button>
               <motion.button onClick={() => window.open(`/api/purchases/bills/${row.id}/download`, '_blank')} className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg" whileHover={{ scale: 1.1 }} title="Download"><Download className="w-4 h-4" /></motion.button>
               <motion.button onClick={() => handleDelete(row.id)} className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg" whileHover={{ scale: 1.1 }} title="Delete"><Trash2 className="w-4 h-4" /></motion.button>
             </div>
           )}
+        />
+      )}
+      {attachBill && (
+        <AttachmentsDialog
+          entityType="bill"
+          entityId={attachBill.id}
+          entityLabel={`Bill #${attachBill.billNo}`}
+          open={!!attachBill}
+          onClose={() => setAttachBill(null)}
         />
       )}
     </div>

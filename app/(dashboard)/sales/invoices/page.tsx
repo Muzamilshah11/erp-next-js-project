@@ -2,8 +2,9 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { DataTable } from '@/components/shared/data-table'
-import { Plus, FileText, Send, Trash2, Pencil, Loader2, XCircle, CheckCircle, Download } from 'lucide-react'
+import { Plus, FileText, Send, Trash2, Loader2, XCircle, CheckCircle, Download, Paperclip } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { AttachmentsDialog } from '@/components/shared/attachments-dialog'
 
 interface InvoiceItem {
   description: string
@@ -20,14 +21,19 @@ interface Invoice {
   dueDate: string
   amount: number
   paid: number
-  status: 'draft' | 'sent' | 'paid' | 'overdue'
+  status: string
+  voidedAt?: string | null
+  voidedBy?: string | null
+  voidReason?: string | null
 }
 
 const statusConfig: Record<string, string> = {
   draft: 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400',
   sent: 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400',
+  posted: 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400',
   paid: 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400',
   overdue: 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400',
+  voided: 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400 line-through',
 }
 
 const columns = [
@@ -57,9 +63,17 @@ const columns = [
       new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(value),
   },
   { key: 'status' as const, label: 'Status',
-    render: (value: string) => (
-      <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusConfig[value] || statusConfig.draft}`}>
+    render: (value: string, row: Invoice) => (
+      <span
+        className={`px-3 py-1 rounded-full text-xs font-medium ${statusConfig[value] || statusConfig.draft}`}
+        title={value === 'voided' && row.voidReason ? row.voidReason : undefined}
+      >
         {value.charAt(0).toUpperCase() + value.slice(1)}
+        {value === 'voided' && row.voidedAt && (
+          <span className="ml-1 text-[10px] opacity-70">
+            {new Date(row.voidedAt).toLocaleDateString()}
+          </span>
+        )}
       </span>
     ),
   },
@@ -73,6 +87,7 @@ export default function InvoicesPage() {
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Invoice | null>(null)
   const [saving, setSaving] = useState(false)
+  const [attachInvoice, setAttachInvoice] = useState<Invoice | null>(null)
   const [form, setForm] = useState({
     customerId: '', date: '', dueDate: '', amount: '',
     items: [] as { description: string; quantity: number; price: number }[],
@@ -88,7 +103,7 @@ export default function InvoicesPage() {
       const iData = await iRes.json()
       const cData = await cRes.json()
       if (!iRes.ok) throw new Error(iData.error)
-      setInvoices((iData.invoices || []).map((inv: { customer: { name: string }; date: string; dueDate: string; items: unknown[]; id: string; invoiceNo: string; amount: number; paid: number; status: string }) => ({
+      setInvoices((iData.invoices || []).map((inv: { customer: { name: string }; date: string; dueDate: string; items: unknown[]; id: string; invoiceNo: string; amount: number; paid: number; status: string; voidedAt?: string | null; voidedBy?: string | null; voidReason?: string | null }) => ({
         id: inv.id,
         invoiceNo: inv.invoiceNo,
         customer: inv.customer || { name: 'Unknown' },
@@ -98,6 +113,9 @@ export default function InvoicesPage() {
         amount: inv.amount,
         paid: inv.paid,
         status: inv.status,
+        voidedAt: inv.voidedAt,
+        voidedBy: inv.voidedBy,
+        voidReason: inv.voidReason,
       })))
       setCustomers(cData.customers || [])
     } catch (err) {
@@ -282,6 +300,9 @@ export default function InvoicesPage() {
                   </motion.button>
                 </>
               )}
+              <motion.button onClick={() => setAttachInvoice(row)} className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg" whileHover={{ scale: 1.1 }} title="Attachments">
+                <Paperclip className="w-4 h-4" />
+              </motion.button>
               <motion.button onClick={() => window.open(`/api/sales/invoices/${row.id}/download`, '_blank')} className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg" whileHover={{ scale: 1.1 }} title="Download">
                 <Download className="w-4 h-4" />
               </motion.button>
@@ -290,6 +311,15 @@ export default function InvoicesPage() {
               </motion.button>
             </div>
           )}
+        />
+      )}
+      {attachInvoice && (
+        <AttachmentsDialog
+          entityType="invoice"
+          entityId={attachInvoice.id}
+          entityLabel={`Invoice #${attachInvoice.invoiceNo}`}
+          open={!!attachInvoice}
+          onClose={() => setAttachInvoice(null)}
         />
       )}
     </div>

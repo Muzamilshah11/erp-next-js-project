@@ -5,7 +5,7 @@ import { DataTable } from '@/components/shared/data-table'
 import { Plus, Trash2, Search, X, Loader2, Download, CheckCircle, Wallet, Users, Clock } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
-interface Employee { id: string; name: string; department: string; designation: string }
+interface Employee { id: string; name: string; department: { name: string } | null; designation: { name: string } | null }
 interface PayrollEntry {
   id: string; employeeId: string; month: number; year: number
   basicSalary: number; totalAllowances: number; totalDeductions: number
@@ -27,7 +27,7 @@ const columns = [
     render: (v: Employee) => (
       <div>
         <span className="font-medium">{v?.name || '-'}</span>
-        <span className="text-xs text-muted-foreground block">{v?.department || ''}</span>
+        <span className="text-xs text-muted-foreground block">{v?.department?.name || ''}</span>
       </div>
     ),
   },

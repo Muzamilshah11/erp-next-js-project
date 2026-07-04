@@ -2,8 +2,9 @@
 
 import { motion } from 'framer-motion'
 import { DataTable } from '@/components/shared/data-table'
-import { Plus, Eye, Trash2, X } from 'lucide-react'
+import { Plus, Eye, Trash2, X, Paperclip } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { AttachmentsDialog } from '@/components/shared/attachments-dialog'
 
 interface JournalEntry {
   id: string
@@ -12,7 +13,10 @@ interface JournalEntry {
   description: string
   debit: number
   credit: number
-  status: 'posted' | 'draft'
+  status: string
+  voidedAt?: string | null
+  voidedBy?: string | null
+  voidReason?: string | null
 }
 
 const columns = [
@@ -55,16 +59,24 @@ const columns = [
   {
     key: 'status' as const,
     label: 'Status',
-    render: (value: string) => (
+    render: (value: string, row: JournalEntry) => (
       <motion.span
         className={`px-3 py-1 rounded-full text-xs font-medium ${
           value === 'posted'
             ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+            : value === 'voided'
+            ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400 line-through'
             : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400'
         }`}
         whileHover={{ scale: 1.05 }}
+        title={value === 'voided' && row.voidReason ? row.voidReason : undefined}
       >
         {value}
+        {value === 'voided' && row.voidedAt && (
+          <span className="ml-1 text-[10px] opacity-70">
+            {new Date(row.voidedAt).toLocaleDateString()}
+          </span>
+        )}
       </motion.span>
     ),
   },
@@ -74,12 +86,13 @@ export default function JournalEntriesPage() {
   const [entries, setEntries] = useState<JournalEntry[]>([])
   const [showForm, setShowForm] = useState(false)
   const [viewEntry, setViewEntry] = useState<JournalEntry | null>(null)
+  const [attachEntry, setAttachEntry] = useState<JournalEntry | null>(null)
   const [form, setForm] = useState({ date: '', description: '', debit: '', credit: '' })
 
   const fetchEntries = async () => {
     const res = await fetch('/api/finance/journal-entries')
     const data = await res.json()
-    setEntries(data.entries.map((entry: { date: string; lines: { debit: number; credit: number }[]; id: string; entryNo: string; description: string; status: string }) => ({
+    setEntries(data.entries.map((entry: { date: string; lines: { debit: number; credit: number }[]; id: string; entryNo: string; description: string; status: string; voidedAt?: string | null; voidedBy?: string | null; voidReason?: string | null }) => ({
       id: entry.id,
       entryNo: entry.entryNo,
       date: entry.date,
@@ -87,6 +100,9 @@ export default function JournalEntriesPage() {
       debit: entry.lines?.reduce((s: number, l: { debit: number }) => s + l.debit, 0) || 0,
       credit: entry.lines?.reduce((s: number, l: { credit: number }) => s + l.credit, 0) || 0,
       status: entry.status,
+      voidedAt: entry.voidedAt,
+      voidedBy: entry.voidedBy,
+      voidReason: entry.voidReason,
     })))
   }
 
@@ -214,6 +230,15 @@ export default function JournalEntriesPage() {
             >
               <Eye className="w-4 h-4" />
             </motion.button>
+            <motion.button
+              onClick={() => setAttachEntry(row)}
+              className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              title="Attachments"
+            >
+              <Paperclip className="w-4 h-4" />
+            </motion.button>
             {row.status === 'draft' && (
               <motion.button
                 onClick={async () => {
@@ -233,6 +258,15 @@ export default function JournalEntriesPage() {
           </>
         )}
       />
+      {attachEntry && (
+        <AttachmentsDialog
+          entityType="journal"
+          entityId={attachEntry.id}
+          entityLabel={`Entry #${attachEntry.entryNo}`}
+          open={!!attachEntry}
+          onClose={() => setAttachEntry(null)}
+        />
+      )}
 
       {/* View Details Modal */}
       {viewEntry && (
@@ -259,6 +293,12 @@ export default function JournalEntriesPage() {
               <p><span className="text-muted-foreground">Debit:</span> {new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR' }).format(viewEntry.debit)}</p>
               <p><span className="text-muted-foreground">Credit:</span> {new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR' }).format(viewEntry.credit)}</p>
               <p><span className="text-muted-foreground">Status:</span> {viewEntry.status}</p>
+              {viewEntry.status === 'voided' && (
+                <>
+                  <p><span className="text-muted-foreground">Voided At:</span> {viewEntry.voidedAt ? new Date(viewEntry.voidedAt).toLocaleString() : '-'}</p>
+                  <p><span className="text-muted-foreground">Void Reason:</span> {viewEntry.voidReason || '-'}</p>
+                </>
+              )}
             </div>
           </motion.div>
         </motion.div>
