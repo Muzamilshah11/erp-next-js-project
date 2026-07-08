@@ -25,6 +25,7 @@ import {
   TrendingUp,
   ImageIcon,
   Wrench,
+  X,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
@@ -118,7 +119,7 @@ function NavItem({
   )
 }
 
-export function Sidebar() {
+export function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean; onClose?: () => void }) {
   const { logout } = useAuth()
   const pathname = usePathname()
   const [company, setCompany] = useState<{ companyName?: string; logoUrl?: string } | null>(null)
@@ -298,14 +299,29 @@ export function Sidebar() {
   ]
 
   return (
-    <motion.aside
-      className="w-64 h-screen bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col overflow-y-auto shadow-sm"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-    >
-      {/* Logo */}
-      <div className="p-6 border-b border-sidebar-border">
+    <>
+      {/* Mobile backdrop */}
+      {mobileOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={onClose} />
+      )}
+
+      <motion.aside
+        className={cn(
+          'w-64 h-screen bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex-col overflow-y-auto shadow-sm',
+          'fixed md:static inset-y-0 left-0 z-50',
+          mobileOpen ? 'flex' : 'hidden md:flex'
+        )}
+      >
+        {/* Mobile close button */}
+        <button
+          onClick={onClose}
+          className="md:hidden absolute top-5 right-4 p-1 text-muted-foreground hover:text-foreground rounded-lg hover:bg-sidebar-accent transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* Logo */}
+        <div className="p-6 border-b border-sidebar-border">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -416,5 +432,6 @@ export function Sidebar() {
         </button>
       </motion.div>
     </motion.aside>
+    </>
   )
 }
