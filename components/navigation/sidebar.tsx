@@ -309,11 +309,11 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean; onClose
         <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={onClose} />
       )}
 
-      <motion.aside
+      <aside
         className={cn(
-          'w-64 h-screen bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex-col overflow-y-auto shadow-sm',
+          'w-64 h-screen bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col overflow-y-auto shadow-sm',
           'fixed md:static inset-y-0 left-0 z-50',
-          mobileOpen ? 'flex' : 'hidden md:flex'
+          !mobileOpen && 'max-md:hidden'
         )}
       >
         {/* Mobile close button */}
@@ -435,7 +435,7 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean; onClose
           <span>Logout</span>
         </button>
       </motion.div>
-    </motion.aside>
+    </aside>
     </>
   )
 }
