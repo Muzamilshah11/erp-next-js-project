@@ -26,6 +26,7 @@ import {
   ImageIcon,
   Wrench,
   X,
+  Menu,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
@@ -119,14 +120,25 @@ function NavItem({
   )
 }
 
-export function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean; onClose?: () => void }) {
+export function Sidebar() {
   const { logout } = useAuth()
   const pathname = usePathname()
+  const [show, setShow] = useState(false)
+  const [isDesktop, setIsDesktop] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const [company, setCompany] = useState<{ companyName?: string; logoUrl?: string } | null>(null)
 
   useEffect(() => {
-    onClose?.()
+    setShow(false)
   }, [pathname])
+
+  useEffect(() => {
+    setMounted(true)
+    setIsDesktop(window.innerWidth >= 768)
+    const handler = () => setIsDesktop(window.innerWidth >= 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
 
   useEffect(() => {
     fetch('/api/setup/company')
@@ -302,105 +314,65 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean; onClose
     },
   ]
 
-  const content = (
+  const sidebarContent = (
     <>
-      {/* Logo */}
-      <div className="p-6 border-b border-sidebar-border">
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.1, duration: 0.3 }}
-          className="flex items-center gap-2"
-        >
+      <div style={{ padding: '24px', borderBottom: '1px solid var(--sidebar-border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {company?.logoUrl ? (
-            <img
-              src={company.logoUrl}
-              alt={company.companyName || 'Company'}
-              className="w-8 h-8 rounded-lg object-contain bg-slate-800"
-            />
+            <img src={company.logoUrl} alt={company.companyName || 'Company'}
+              style={{ width: '32px', height: '32px', borderRadius: '8px', objectFit: 'contain', background: '#1e293b' }} />
           ) : (
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
-              <BarChart3 className="w-5 h-5 text-white" />
+            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, var(--primary), var(--accent))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <BarChart3 style={{ width: '20px', height: '20px', color: 'white' }} />
             </div>
           )}
           <div>
-            <h1 className="text-sm font-bold text-foreground">{company?.companyName || 'ERP Pro'}</h1>
-            <p className="text-xs text-muted-foreground">{company ? 'v1.0' : 'Loading...'}</p>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--sidebar-foreground)' }}>{company?.companyName || 'ERP Pro'}</div>
+            <div style={{ fontSize: '12px', color: 'var(--sidebar-muted, var(--muted-foreground))' }}>{company ? 'v1.0' : 'Loading...'}</div>
           </div>
-        </motion.div>
+        </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.3 }}
-          className="space-y-1"
-        >
-          {modules.map((module, idx) => (
-            <motion.div
-              key={module.label}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 * idx, duration: 0.3 }}
-            >
-              {module.expandable ? (
-                <>
-                  <NavItem
-                    label={module.label}
-                    icon={module.icon}
-                    expandable
-                    expanded={expandedSections[module.section!]}
-                    onToggle={() => toggleSection(module.section!)}
-                    active={isActive(`/${module.section}`)}
-                  />
-                  {expandedSections[module.section!] && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="pl-5 space-y-0.5 mt-0.5"
-                    >
-                      {module.children?.map(child => (
-                        <motion.div
-                          key={child.href}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <NavItem
-                            href={child.href}
-                            label={child.label}
-                            icon={<div className="w-1.5 h-1.5 rounded-full bg-current" />}
-                            active={pathname === child.href}
-                          />
-                        </motion.div>
-                      ))}
-                    </motion.div>
-                  )}
-                </>
-              ) : (
+      <nav style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto' }}>
+        {modules.map((module) => (
+          <div key={module.label}>
+            {module.expandable ? (
+              <>
                 <NavItem
-                  href={module.href}
                   label={module.label}
                   icon={module.icon}
-                  active={pathname === module.href}
+                  expandable
+                  expanded={expandedSections[module.section!]}
+                  onToggle={() => toggleSection(module.section!)}
+                  active={isActive(`/${module.section}`)}
                 />
-              )}
-            </motion.div>
-          ))}
-        </motion.div>
+                {expandedSections[module.section!] && (
+                  <div style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '2px' }}>
+                    {module.children?.map(child => (
+                      <NavItem
+                        key={child.href}
+                        href={child.href}
+                        label={child.label}
+                        icon={<div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor' }} />}
+                        active={pathname === child.href}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <NavItem
+                href={module.href}
+                label={module.label}
+                icon={module.icon}
+                active={pathname === module.href}
+              />
+            )}
+          </div>
+        ))}
       </nav>
 
-      {/* Footer */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6, duration: 0.3 }}
-        className="p-3 border-t border-black/10 dark:border-black/20 space-y-1.5"
-      >
+      <div style={{ padding: '12px', borderTop: '1px solid rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
         <NavItem
           href="/settings"
           label="Settings"
@@ -409,31 +381,79 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean; onClose
         />
         <button
           onClick={logout}
-          className="w-full px-3 py-1.5 rounded-lg text-muted-foreground hover:bg-sidebar-accent flex items-center gap-2.5 transition-colors text-xs font-medium"
+          style={{
+            width: '100%', padding: '6px 12px', borderRadius: '8px', border: 'none', cursor: 'pointer',
+            color: 'var(--muted-foreground)', background: 'transparent', fontSize: '12px', fontWeight: 500,
+            display: 'flex', alignItems: 'center', gap: '10px',
+          }}
+          onMouseEnter={e => { (e.target as HTMLElement).style.background = 'var(--sidebar-accent)' }}
+          onMouseLeave={e => { (e.target as HTMLElement).style.background = 'transparent' }}
         >
-          <LogOut className="w-3.5 h-3.5" />
+          <LogOut style={{ width: '14px', height: '14px' }} />
           <span>Logout</span>
         </button>
-      </motion.div>
+      </div>
     </>
   )
 
+  if (!mounted) return null
+
+  const visible = isDesktop || show
+
   return (
     <>
-      {mobileOpen && (
-        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={onClose} />
-      )}
-      <aside
-        className="hidden md:flex w-64 h-screen bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex-col overflow-y-auto shadow-sm fixed md:static inset-y-0 left-0 z-50"
-        style={mobileOpen ? { display: 'flex' } : {}}
-      >
+      {!isDesktop && (
         <button
-          onClick={onClose}
-          className="md:hidden absolute top-5 right-4 p-1 text-muted-foreground hover:text-foreground rounded-lg hover:bg-sidebar-accent transition-colors"
+          onClick={() => setShow(true)}
+          style={{
+            position: 'fixed', top: 16, left: 16, zIndex: 9999,
+            padding: 8, background: 'transparent', border: 'none',
+            cursor: 'pointer', color: 'var(--muted-foreground)', borderRadius: 8,
+          }}
         >
-          <X className="w-5 h-5" />
+          <Menu size={20} />
         </button>
-        {content}
+      )}
+
+      {show && !isDesktop && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 40,
+          }}
+          onClick={() => setShow(false)}
+        />
+      )}
+
+      <aside
+        style={{
+          width: isDesktop ? 256 : 256,
+          height: '100vh',
+          display: visible ? 'flex' : 'none',
+          flexDirection: 'column',
+          flexShrink: 0,
+          overflowY: 'auto',
+          backgroundColor: 'var(--sidebar)',
+          color: 'var(--sidebar-foreground)',
+          borderRight: '1px solid var(--sidebar-border)',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+          position: isDesktop ? 'static' : ('fixed' as const),
+          top: 0,
+          left: 0,
+          zIndex: isDesktop ? 0 : 50,
+        }}
+      >
+        {!isDesktop && (
+          <button
+            onClick={() => setShow(false)}
+            style={{
+              position: 'absolute', top: 20, right: 16, padding: 4, border: 'none',
+              cursor: 'pointer', color: 'var(--muted-foreground)', background: 'transparent', borderRadius: 8,
+            }}
+          >
+            <X size={20} />
+          </button>
+        )}
+        {sidebarContent}
       </aside>
     </>
   )

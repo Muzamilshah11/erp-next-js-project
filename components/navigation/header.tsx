@@ -1,13 +1,14 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Search, User, Settings, BarChart3, Menu } from 'lucide-react'
+import { Search, User, Settings, BarChart3 } from 'lucide-react'
+
 import { NotificationDropdown } from '@/components/notifications/notification-dropdown'
 import { useAuth } from '@/contexts/auth-context'
 import { CommandPalette } from './command-palette'
 import { useState, useEffect } from 'react'
 
-export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
+export function Header() {
   const { user } = useAuth()
   const [company, setCompany] = useState<{ companyName?: string; logoUrl?: string } | null>(null)
 
@@ -27,14 +28,6 @@ export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        {/* Hamburger — mobile only */}
-        <button
-          onClick={onMenuToggle}
-          className="md:hidden p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors mr-2"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
-
         {/* Company Logo */}
         <div className="flex items-center gap-3 mr-4">
           {company?.logoUrl ? (
