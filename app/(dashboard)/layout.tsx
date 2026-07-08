@@ -4,6 +4,7 @@ import { Sidebar } from '@/components/navigation/sidebar'
 import { Header } from '@/components/navigation/header'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/contexts/auth-context'
+import ChatBot from '@/components/chatbot/ChatBot'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
@@ -47,6 +48,7 @@ export default function DashboardLayout({
           </div>
         </motion.main>
       </div>
+      <ChatBot />
     </div>
   )
 }
