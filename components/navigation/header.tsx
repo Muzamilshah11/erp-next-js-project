@@ -1,12 +1,13 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Bell, Search, User, Settings, BarChart3 } from 'lucide-react'
+import { Search, User, Settings, BarChart3, Menu } from 'lucide-react'
+import { NotificationDropdown } from '@/components/notifications/notification-dropdown'
 import { useAuth } from '@/contexts/auth-context'
 import { CommandPalette } from './command-palette'
 import { useState, useEffect } from 'react'
 
-export function Header() {
+export function Header({ onMenuToggle }: { onMenuToggle?: () => void }) {
   const { user } = useAuth()
   const [company, setCompany] = useState<{ companyName?: string; logoUrl?: string } | null>(null)
 
@@ -26,6 +27,14 @@ export function Header() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
+        {/* Hamburger — mobile only */}
+        <button
+          onClick={onMenuToggle}
+          className="md:hidden p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors mr-2"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
         {/* Company Logo */}
         <div className="flex items-center gap-3 mr-4">
           {company?.logoUrl ? (
@@ -41,9 +50,20 @@ export function Header() {
           )}
         </div>
 
-        {/* Search Bar */}
+        {/* Search — mobile icon */}
+        <button
+          onClick={() => {
+            const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, metaKey: true, bubbles: true })
+            document.dispatchEvent(event)
+          }}
+          className="md:hidden p-2 ml-auto text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+        >
+          <Search className="w-5 h-5" />
+        </button>
+
+        {/* Search — desktop full input */}
         <motion.div
-          className="flex-1 max-w-md"
+          className="hidden md:block flex-1 max-w-md"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1, duration: 0.3 }}
@@ -71,32 +91,20 @@ export function Header() {
         transition={{ delay: 0.2, duration: 0.3 }}
       >
         {/* Notifications */}
-        <motion.button
-          className="relative p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <Bell className="w-5 h-5" />
-          <motion.span
-            className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 200 }}
-          />
-        </motion.button>
+        <NotificationDropdown />
 
-        {/* Settings */}
+        {/* Settings — desktop only */}
         <motion.button
-          className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+          className="hidden md:block p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
           <Settings className="w-5 h-5" />
         </motion.button>
 
-        {/* User Profile */}
+        {/* User Profile — desktop only */}
         <motion.div
-          className="flex items-center gap-3 pl-4 border-l border-border"
+          className="hidden md:flex items-center gap-3 pl-4 border-l border-border"
           whileHover={{ scale: 1.02 }}
         >
           <div className="text-right hidden sm:block">
