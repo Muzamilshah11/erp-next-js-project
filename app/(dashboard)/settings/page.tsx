@@ -1,7 +1,7 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { Building2, Monitor, Percent, Download, RotateCcw, FileText, Calendar } from 'lucide-react'
+import Link from 'next/link'
 
 const cards = [
   { label: 'Company Setup', desc: 'Company name, logo, tax reg, financial year', icon: <Building2 className="w-6 h-6" />, href: '/settings/company', color: 'from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200' },
@@ -16,27 +16,21 @@ const cards = [
 export default function SettingsPage() {
   return (
     <div className="space-y-6">
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+      <div>
         <h1 className="text-3xl font-bold text-foreground">Setup & Maintenance</h1>
         <p className="text-muted-foreground mt-1">Configure your system, manage tax rates, void transactions, and download CSV templates</p>
-      </motion.div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {cards.map((card, i) => (
           <Link key={i} href={card.href}>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className={`bg-gradient-to-br ${card.color} rounded-xl p-5 border cursor-pointer hover:shadow-lg transition-shadow`}
-              whileHover={{ y: -3 }}
-            >
+            <div className={`bg-gradient-to-br ${card.color} rounded-xl p-5 border cursor-pointer hover:shadow-lg transition-shadow hover:-translate-y-1`}>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-foreground">{card.label}</h3>
                 <span className="text-muted-foreground/70">{card.icon}</span>
               </div>
               <p className="text-sm text-muted-foreground">{card.desc}</p>
-            </motion.div>
+            </div>
           </Link>
         ))}
       </div>

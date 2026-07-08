@@ -131,7 +131,7 @@ export function Sidebar() {
   }, [])
 
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    finance: true,
+    finance: false,
     sales: false,
     purchases: false,
     inventory: false,
