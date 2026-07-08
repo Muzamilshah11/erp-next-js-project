@@ -125,6 +125,10 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean; onClose
   const [company, setCompany] = useState<{ companyName?: string; logoUrl?: string } | null>(null)
 
   useEffect(() => {
+    onClose?.()
+  }, [pathname])
+
+  useEffect(() => {
     fetch('/api/setup/company')
       .then(r => r.json())
       .then(d => setCompany(d.company))
