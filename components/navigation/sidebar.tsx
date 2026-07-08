@@ -302,30 +302,10 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean; onClose
     },
   ]
 
-  return (
+  const content = (
     <>
-      {/* Mobile backdrop */}
-      {mobileOpen && (
-        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={onClose} />
-      )}
-
-      <aside
-        className={cn(
-          'w-64 h-screen bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col overflow-y-auto shadow-sm',
-          'fixed md:static inset-y-0 left-0 z-50',
-          !mobileOpen && 'max-md:hidden'
-        )}
-      >
-        {/* Mobile close button */}
-        <button
-          onClick={onClose}
-          className="md:hidden absolute top-5 right-4 p-1 text-muted-foreground hover:text-foreground rounded-lg hover:bg-sidebar-accent transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Logo */}
-        <div className="p-6 border-b border-sidebar-border">
+      {/* Logo */}
+      <div className="p-6 border-b border-sidebar-border">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -435,7 +415,31 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen?: boolean; onClose
           <span>Logout</span>
         </button>
       </motion.div>
-    </aside>
+    </>
+  )
+
+  return (
+    <>
+      {/* Desktop sidebar — always visible */}
+      <aside className="hidden md:flex w-64 h-screen bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex-col overflow-y-auto shadow-sm">
+        {content}
+      </aside>
+
+      {/* Mobile sidebar — overlay, only in DOM when open */}
+      {mobileOpen && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={onClose} />
+          <aside className="fixed md:hidden inset-y-0 left-0 z-50 w-64 h-screen bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col overflow-y-auto shadow-sm">
+            <button
+              onClick={onClose}
+              className="absolute top-5 right-4 p-1 text-muted-foreground hover:text-foreground rounded-lg hover:bg-sidebar-accent transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            {content}
+          </aside>
+        </>
+      )}
     </>
   )
 }
