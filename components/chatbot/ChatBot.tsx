@@ -257,12 +257,12 @@ export default function ChatBot() {
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => setIsOpen((prev) => !prev)}
-        className="fixed bottom-4 right-4 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg hover:shadow-xl flex items-center justify-center transition-shadow"
+        className="fixed bottom-4 right-4 z-50 w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg hover:shadow-xl flex items-center justify-center transition-shadow animate-glow md:animate-none"
       >
         {isOpen ? (
-          <X className="w-6 h-6 text-white" />
+          <X className="w-5 h-5 md:w-6 md:h-6 text-white" />
         ) : (
-          <Bot className="w-6 h-6 text-white" />
+          <Bot className="w-5 h-5 md:w-6 md:h-6 text-white" />
         )}
       </motion.button>
     </>
