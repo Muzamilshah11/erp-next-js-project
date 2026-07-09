@@ -3,9 +3,13 @@ import { cookies } from 'next/headers'
 import { prisma } from './prisma'
 import { verifyToken } from './auth-edge'
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET
-)
+function getJwtSecret(): Uint8Array {
+  const secret = process.env.JWT_SECRET
+  if (!secret) {
+    throw new Error('JWT_SECRET environment variable is not set')
+  }
+  return new TextEncoder().encode(secret)
+}
 
 const COOKIE_NAME = 'session'
 
@@ -14,7 +18,7 @@ export async function createToken(payload: { userId: string; email: string; role
     .setProtectedHeader({ alg: 'HS256' })
     .setExpirationTime('7d')
     .setIssuedAt()
-    .sign(JWT_SECRET)
+    .sign(getJwtSecret())
 }
 
 export async function setSessionCookie(token: string) {
