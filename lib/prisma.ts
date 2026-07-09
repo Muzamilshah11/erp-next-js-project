@@ -8,11 +8,12 @@ function getPrisma(): PrismaClient {
   if (!databaseUrl) {
     throw new Error('DATABASE_URL environment variable is not set')
   }
-  return new PrismaClient({
-    adapter: new PrismaPg({ connectionString: databaseUrl }),
-  })
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = new PrismaClient({
+      adapter: new PrismaPg({ connectionString: databaseUrl }),
+    })
+  }
+  return globalForPrisma.prisma
 }
 
-export const prisma = globalForPrisma.prisma ?? getPrisma()
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+export const prisma = getPrisma()
