@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import bcrypt from 'bcryptjs'
+import { compare } from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { createToken, setSessionCookie } from '@/lib/auth'
 
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 })
     }
 
-    const isValid = await bcrypt.compare(password, user.password)
+    const isValid = await compare(password, user.password)
     if (!isValid) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 })
     }
@@ -29,6 +29,7 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     console.error('Login error:', error)
-    return NextResponse.json({ error: 'Login failed' }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Login failed'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

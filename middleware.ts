@@ -5,34 +5,38 @@ import { verifyToken } from '@/lib/auth-edge'
 const publicPaths = ['/login', '/register']
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+  try {
+    const { pathname } = request.nextUrl
 
-  if (publicPaths.includes(pathname) || pathname === '/') {
+    if (publicPaths.includes(pathname) || pathname === '/') {
+      return NextResponse.next()
+    }
+
+    if (pathname.startsWith('/api/auth') || pathname.startsWith('/api/health')) {
+      return NextResponse.next()
+    }
+
+    const token = request.cookies.get('session')?.value
+
+    if (!token) {
+      if (pathname.startsWith('/api/')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+
+    const payload = await verifyToken(token)
+    if (!payload) {
+      if (pathname.startsWith('/api/')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+
+    return NextResponse.next()
+  } catch {
     return NextResponse.next()
   }
-
-  if (pathname.startsWith('/api/auth')) {
-    return NextResponse.next()
-  }
-
-  const token = request.cookies.get('session')?.value
-
-  if (!token) {
-    if (pathname.startsWith('/api/')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
-
-  const payload = await verifyToken(token)
-  if (!payload) {
-    if (pathname.startsWith('/api/')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
-
-  return NextResponse.next()
 }
 
 export const config = {
