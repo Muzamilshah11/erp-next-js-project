@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import { format } from 'date-fns'
+import { formatCurrency } from '@/lib/utils'
 
 const statusColors: Record<string, string> = {
   completed: 'bg-green-100 text-green-800',
@@ -39,17 +40,16 @@ export default function SalesPaymentsPage() {
       </div>
       <DataTable
         columns={[
-          { header: 'Payment No', accessor: 'paymentNo' },
-          { header: 'Customer', accessor: (p: any) => p.customer?.name || '-' },
-          { header: 'Date', accessor: (p: any) => format(new Date(p.date), 'dd MMM yyyy') },
-          { header: 'Amount', accessor: (p: any) => `$${p.amount.toLocaleString()}` },
-          { header: 'Method', accessor: 'paymentMethod' },
-          { header: 'Reference', accessor: 'reference' },
-          { header: 'Status', accessor: (p: any) => <Badge className={statusColors[p.status] || ''}>{p.status}</Badge> },
-          { header: '', accessor: (p: any) => <Button variant="ghost" size="sm" onClick={() => router.push(`/sales/payments/${p.id}`)}>View</Button> },
+          { key: 'paymentNo', label: 'Payment No' },
+          { key: 'customer', label: 'Customer', render: (v: any, p: any) => p.customer?.name || '-' },
+          { key: 'date', label: 'Date', render: (v: any, p: any) => format(new Date(p.date), 'dd MMM yyyy') },
+          { key: 'amount', label: 'Amount', render: (v: any, p: any) => formatCurrency(p.amount) },
+          { key: 'paymentMethod', label: 'Method' },
+          { key: 'reference', label: 'Reference' },
+          { key: 'status', label: 'Status', render: (v: any, p: any) => <Badge className={statusColors[p.status] || ''}>{p.status}</Badge> },
+          { key: 'id', label: '', render: (v: any, p: any) => <Button variant="ghost" size="sm" onClick={() => router.push(`/sales/payments/${p.id}`)}>View</Button> },
         ]}
         data={payments}
-        loading={loading}
         emptyMessage="No payments found"
       />
     </div>

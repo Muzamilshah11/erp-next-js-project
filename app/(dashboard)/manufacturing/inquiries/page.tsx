@@ -7,11 +7,11 @@ import { useState, useEffect } from 'react'
 
 interface InvItem { id: string; name: string; sku: string }
 interface BOM { id: string; bomNo: string; name: string; item: InvItem; _count: { items: number } }
-interface Result { bom: BOM; quantity: number }
+interface Result { id: string; bom: BOM; quantity: number }
 
 const bomCols = [
-  { key: 'bom' as const, label: 'BOM No', render: (v: BOM) => <span className="font-mono font-semibold text-primary">{v?.bomNo}</span> },
-  { key: 'bom' as const, label: 'Finished Good', render: (v: BOM) => <span className="font-medium">{v?.item?.name}</span> },
+  { key: 'bom' as const, label: 'BOM No', render: (_v: unknown, row: Result) => <span className="font-mono font-semibold text-primary">{row.bom?.bomNo}</span> },
+  { key: 'name' as const, label: 'Finished Good', render: (_v: unknown, row: Result) => <span className="font-medium">{row.bom?.item?.name}</span> },
   { key: 'quantity' as const, label: 'Qty per BOM', render: (v: number) => v },
 ]
 
@@ -73,7 +73,7 @@ export default function InquiriesPage() {
           {tab === 'where-used' && <p className="text-xs text-muted-foreground mt-2">This item is not used as a component in any BOM.</p>}
         </div>
       ) : tab === 'where-used' ? (
-        <DataTable columns={bomCols} data={results as Result[]} title="Where Used — BOMs using this component"
+        <DataTable columns={bomCols} data={results as any[]} title="Where Used — BOMs using this component"
           expandRow={(row) => (
             <div className="p-4">
               <p className="text-sm text-muted-foreground">BOM: {(row as Result).bom?.bomNo} — {(row as Result).bom?.name || (row as Result).bom?.item?.name}</p>

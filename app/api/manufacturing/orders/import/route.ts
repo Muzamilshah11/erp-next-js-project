@@ -17,12 +17,21 @@ export async function POST(request: Request) {
 
       let bom
       if (r.bomNo) {
-        bom = await prisma.bOM.findUnique({ where: { bomNo: r.bomNo } })
+        bom = await prisma.bOM.findUnique({ where: { bomNo: r.bomNo }, include: { items: true } })
       }
       const wh = r.warehouseCode ? await prisma.warehouse.findUnique({ where: { code: r.warehouseCode } }) : null
 
       const prefix = r.type === 'assemble' ? 'MO-' : 'MU-'
       const count = await prisma.workOrder.count()
+
+      let orderItems: { itemId: string; quantity: number; type: string }[] = []
+      if (r.type === 'assemble' && bom) {
+        orderItems = bom.items.map(i => ({ itemId: i.itemId, quantity: i.quantity * (parseInt(r.quantity) || 1), type: 'component' }))
+        orderItems.push({ itemId: item.id, quantity: parseInt(r.quantity) || 1, type: 'finished-good' })
+      } else {
+        orderItems = [{ itemId: item.id, quantity: parseInt(r.quantity) || 1, type: 'finished-good' }]
+      }
+
       const order = await prisma.workOrder.create({
         data: {
           workOrderNo: `${prefix}${String(count + 1).padStart(4, '0')}`,
@@ -30,6 +39,7 @@ export async function POST(request: Request) {
           sourceWarehouseId: r.type === 'unassemble' ? wh?.id || null : null,
           destinationWarehouseId: r.type === 'assemble' ? wh?.id || null : null,
           quantity: parseInt(r.quantity) || 1, status: 'draft',
+          items: { create: orderItems },
         },
       })
       created.push(order)

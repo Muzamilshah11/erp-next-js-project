@@ -24,7 +24,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   try {
     const { id } = await params; const body = await request.json()
     let totalCost = 0
-    const itemsData = body.items ? [] : undefined
+    const itemsData: { itemId: string; quantity: number; unitCost: number }[] | undefined = body.items ? [] : undefined
     if (body.items) {
       for (const item of body.items) {
         const invItem = await prisma.inventoryItem.findUnique({ where: { id: item.itemId } })

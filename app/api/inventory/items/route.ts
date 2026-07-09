@@ -12,9 +12,9 @@ export async function GET(request: Request) {
 
     const where = q ? {
       OR: [
-        { name: { contains: q, mode: 'insensitive' } },
-        { sku: { contains: q, mode: 'insensitive' } },
-        { category: { contains: q, mode: 'insensitive' } },
+        { name: { contains: q, mode: 'insensitive' as const } },
+        { sku: { contains: q, mode: 'insensitive' as const } },
+        { category: { contains: q, mode: 'insensitive' as const } },
       ],
     } : {}
 

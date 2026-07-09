@@ -145,7 +145,7 @@ export default function ReportsPage() {
       {loading ? <div className="bg-card rounded-xl border border-border p-12 text-center"><Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" /><p className="text-muted-foreground">Loading...</p></div>
       : <>
         {activeTab === 'loans' && <DataTable columns={loanColumns as typeof loanColumns} data={loans} title="Loan Inquiry"
-          actions={(row: Record<string, unknown>) => <button onClick={() => viewLoanDetail(row.id as string)} className="px-3 py-1 text-xs bg-primary/10 text-primary rounded-lg hover:bg-primary/20">View Detail</button>}
+          actions={(row: LoanReport) => <button onClick={() => viewLoanDetail(row.id)} className="px-3 py-1 text-xs bg-primary/10 text-primary rounded-lg hover:bg-primary/20">View Detail</button>}
         />}
         {activeTab === 'gratuity' && <DataTable columns={gratuityColumns as typeof gratuityColumns} data={gratuities} title="Gratuity Report" />}
         {activeTab === 'increments' && <DataTable columns={incrementColumns as typeof incrementColumns} data={increments} title="Increment Report" />}

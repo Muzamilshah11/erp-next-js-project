@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card'
 import { ArrowLeft, CheckCircle, Loader2, Play } from 'lucide-react'
 import Link from 'next/link'
 import { format } from 'date-fns'
+import { formatCurrency } from '@/lib/utils'
 
 const typeLabels: Record<string, string> = {
   journal: 'Journal Entry',
@@ -100,8 +101,8 @@ export default function VoucherDetailPage() {
 
       <div className="grid grid-cols-4 gap-4">
         <Card className="p-4"><p className="text-xs text-muted-foreground">Date</p><p className="text-sm font-medium">{format(new Date(entry.date), 'dd MMM yyyy')}</p></Card>
-        <Card className="p-4"><p className="text-xs text-muted-foreground">Total Debit</p><p className="text-sm font-medium">${entry.totalDebit.toLocaleString()}</p></Card>
-        <Card className="p-4"><p className="text-xs text-muted-foreground">Total Credit</p><p className="text-sm font-medium">${entry.totalCredit.toLocaleString()}</p></Card>
+        <Card className="p-4"><p className="text-xs text-muted-foreground">Total Debit</p><p className="text-sm font-medium">{formatCurrency(entry.totalDebit)}</p></Card>
+        <Card className="p-4"><p className="text-xs text-muted-foreground">Total Credit</p><p className="text-sm font-medium">{formatCurrency(entry.totalCredit)}</p></Card>
         <Card className="p-4"><p className="text-xs text-muted-foreground">Payee</p><p className="text-sm font-medium">{entry.payee || '-'}</p></Card>
       </div>
 
@@ -132,16 +133,16 @@ export default function VoucherDetailPage() {
               <tr key={line.id} className="border-b last:border-0">
                 <td className="py-2">{line.account?.name || '-'}</td>
                 <td className="py-2">{line.account?.code || '-'}</td>
-                <td className="py-2 text-right">{line.debit ? `$${line.debit.toFixed(2)}` : '-'}</td>
-                <td className="py-2 text-right">{line.credit ? `$${line.credit.toFixed(2)}` : '-'}</td>
+                <td className="py-2 text-right">{line.debit ? formatCurrency(line.debit) : '-'}</td>
+                <td className="py-2 text-right">{line.credit ? formatCurrency(line.credit) : '-'}</td>
               </tr>
             ))}
           </tbody>
           <tfoot>
             <tr className="font-semibold border-t">
               <td className="pt-2" colSpan={2}>Total</td>
-              <td className="pt-2 text-right">${entry.totalDebit.toFixed(2)}</td>
-              <td className="pt-2 text-right">${entry.totalCredit.toFixed(2)}</td>
+              <td className="pt-2 text-right">{formatCurrency(entry.totalDebit)}</td>
+              <td className="pt-2 text-right">{formatCurrency(entry.totalCredit)}</td>
             </tr>
           </tfoot>
         </table>

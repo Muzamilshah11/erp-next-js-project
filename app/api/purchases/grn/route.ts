@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     if (body.status === 'received' || body.status === undefined) {
       for (const item of (body.items || [])) {
         const inv = await prisma.inventoryItem.findFirst({
-          where: { name: { contains: item.description, mode: 'insensitive' } },
+          where: { name: { contains: item.description, mode: 'insensitive' as const } },
         })
         if (inv) {
           await prisma.inventoryItem.update({

@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     const where: Record<string, unknown> = {}
     if (categoryId) where.categoryId = categoryId
     if (status) where.status = status
-    if (q) where.OR = [{ title: { contains: q, mode: 'insensitive' } }, { articleNo: { contains: q, mode: 'insensitive' } }]
+    if (q) where.OR = [{ title: { contains: q, mode: 'insensitive' as const } }, { articleNo: { contains: q, mode: 'insensitive' as const } }]
 
     const articles = await prisma.knowledgeBaseArticle.findMany({
       where, include: { category: { select: { id: true, name: true } } },

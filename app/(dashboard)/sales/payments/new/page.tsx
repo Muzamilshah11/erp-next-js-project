@@ -47,7 +47,7 @@ export default function NewSalesPaymentPage() {
       <Card className="p-6 space-y-4">
         <div className="space-y-2">
           <Label>Customer</Label>
-          <Select value={customerId} onValueChange={setCustomerId}>
+          <Select value={customerId} onValueChange={(v) => v && setCustomerId(v)}>
             <SelectTrigger><SelectValue placeholder="Select customer" /></SelectTrigger>
             <SelectContent>{customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
           </Select>
@@ -65,7 +65,7 @@ export default function NewSalesPaymentPage() {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Payment Method</Label>
-            <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+            <Select value={paymentMethod} onValueChange={(v) => v && setPaymentMethod(v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="cash">Cash</SelectItem>

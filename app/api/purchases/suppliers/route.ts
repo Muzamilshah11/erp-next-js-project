@@ -11,10 +11,10 @@ export async function GET(request: Request) {
     const q = searchParams.get('q')?.trim()
     const where = q ? {
       OR: [
-        { name: { contains: q, mode: 'insensitive' } },
-        { email: { contains: q, mode: 'insensitive' } },
-        { phone: { contains: q, mode: 'insensitive' } },
-        { city: { contains: q, mode: 'insensitive' } },
+        { name: { contains: q, mode: 'insensitive' as const } },
+        { email: { contains: q, mode: 'insensitive' as const } },
+        { phone: { contains: q, mode: 'insensitive' as const } },
+        { city: { contains: q, mode: 'insensitive' as const } },
       ],
     } : {}
 

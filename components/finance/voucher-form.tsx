@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card } from '@/components/ui/card'
 import { Plus, Trash2 } from 'lucide-react'
+import { formatCurrency } from '@/lib/utils'
 
 interface Account { id: string; code: string; name: string; subType: string }
 
@@ -140,7 +141,7 @@ export function VoucherForm({ type, initialData, onSave, saveLabel }: VoucherFor
           <h2 className="text-lg font-semibold">Debit / Credit Lines</h2>
           <div className="flex items-center gap-3">
             <span className={`text-sm font-medium ${isBalanced ? 'text-green-600' : 'text-red-600'}`}>
-              {isBalanced ? '✓ Balanced' : `Diff: $${(totalDebit - totalCredit).toFixed(2)}`}
+              {isBalanced ? '✓ Balanced' : `Diff: ${formatCurrency(totalDebit - totalCredit)}`}
             </span>
             <Button variant="outline" size="sm" onClick={addLine}><Plus className="w-4 h-4 mr-2" />Add Line</Button>
           </div>
@@ -151,7 +152,7 @@ export function VoucherForm({ type, initialData, onSave, saveLabel }: VoucherFor
             <div className="grid grid-cols-12 gap-2 items-end">
               <div className="col-span-4">
                 <p className="text-xs text-muted-foreground mb-1">From Bank (Credit)</p>
-                <Select value={lines[0]?.accountId || ''} onValueChange={(v) => updateLine(0, 'accountId', v)}>
+                <Select value={lines[0]?.accountId || ''} onValueChange={(v) => v && updateLine(0, 'accountId', v)}>
                   <SelectTrigger><SelectValue placeholder="Select source bank" /></SelectTrigger>
                   <SelectContent>
                     {filteredAccounts('bank').map(a => <SelectItem key={a.id} value={a.id}>{a.code} - {a.name}</SelectItem>)}
@@ -160,7 +161,7 @@ export function VoucherForm({ type, initialData, onSave, saveLabel }: VoucherFor
               </div>
               <div className="col-span-4">
                 <p className="text-xs text-muted-foreground mb-1">To Bank (Debit)</p>
-                <Select value={lines[1]?.accountId || ''} onValueChange={(v) => updateLine(1, 'accountId', v)}>
+                <Select value={lines[1]?.accountId || ''} onValueChange={(v) => v && updateLine(1, 'accountId', v)}>
                   <SelectTrigger><SelectValue placeholder="Select target bank" /></SelectTrigger>
                   <SelectContent>
                     {filteredAccounts('bank').map(a => <SelectItem key={a.id} value={a.id}>{a.code} - {a.name}</SelectItem>)}
@@ -187,7 +188,7 @@ export function VoucherForm({ type, initialData, onSave, saveLabel }: VoucherFor
               <div key={idx} className="grid grid-cols-12 gap-2 items-end border-b pb-3">
                 <div className="col-span-4 space-y-1">
                   <Label className="text-xs">{isAutoAccount ? (isAutoCredit ? 'Bank/Cash (Credit)' : 'Bank/Cash (Debit)') : 'Account'}</Label>
-                  <Select value={line.accountId} onValueChange={(v) => updateLine(idx, 'accountId', v)}>
+                  <Select value={line.accountId} onValueChange={(v) => v && updateLine(idx, 'accountId', v)}>
                     <SelectTrigger><SelectValue placeholder="Select account" /></SelectTrigger>
                     <SelectContent>
                       {(isAutoAccount && filterType ? filteredAccounts(filterType) : accounts).map(a => (
@@ -214,7 +215,7 @@ export function VoucherForm({ type, initialData, onSave, saveLabel }: VoucherFor
                 </div>
                 <div className="col-span-3 space-y-1">
                   <Label className="text-xs">Balance</Label>
-                  <p className="text-sm font-medium pt-1">${((line.debit || 0) - (line.credit || 0)).toFixed(2)}</p>
+                  <p className="text-sm font-medium pt-1">{formatCurrency((line.debit || 0) - (line.credit || 0))}</p>
                 </div>
                 <div className="col-span-1 flex items-end">
                   {!isAutoAccount && <Button variant="ghost" size="sm" onClick={() => removeLine(idx)}><Trash2 className="w-4 h-4 text-red-500" /></Button>}
@@ -226,8 +227,8 @@ export function VoucherForm({ type, initialData, onSave, saveLabel }: VoucherFor
 
         <div className="flex justify-between pt-2 border-t">
           <div className="space-y-1 text-sm">
-            <p>Total Debit: <span className="font-semibold">${totalDebit.toFixed(2)}</span></p>
-            <p>Total Credit: <span className="font-semibold">${totalCredit.toFixed(2)}</span></p>
+            <p>Total Debit: <span className="font-semibold">{formatCurrency(totalDebit)}</span></p>
+            <p>Total Credit: <span className="font-semibold">{formatCurrency(totalCredit)}</span></p>
           </div>
           <Button onClick={handleSubmit} disabled={saving || !isBalanced || lines.length === 0}>
             {saving ? 'Saving...' : saveLabel || 'Save Voucher'}

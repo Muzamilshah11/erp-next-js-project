@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import { format } from 'date-fns'
+import { formatCurrency } from '@/lib/utils'
 
 export default function PurchasesCreditNotesPage() {
   const router = useRouter()
@@ -28,16 +29,15 @@ export default function PurchasesCreditNotesPage() {
       </div>
       <DataTable
         columns={[
-          { header: 'Credit Note No', accessor: 'creditNoteNo' },
-          { header: 'Supplier', accessor: (cn: any) => cn.supplier?.name || '-' },
-          { header: 'Date', accessor: (cn: any) => format(new Date(cn.date), 'dd MMM yyyy') },
-          { header: 'Amount', accessor: (cn: any) => `$${cn.amount.toLocaleString()}` },
-          { header: 'Reason', accessor: 'reason' },
-          { header: 'Status', accessor: (cn: any) => <Badge variant="outline">{cn.status}</Badge> },
-          { header: '', accessor: (cn: any) => <Button variant="ghost" size="sm" onClick={() => router.push(`/purchases/credit-notes/${cn.id}`)}>View</Button> },
+          { key: 'creditNoteNo', label: 'Credit Note No' },
+          { key: 'supplier', label: 'Supplier', render: (v: any, cn: any) => cn.supplier?.name || '-' },
+          { key: 'date', label: 'Date', render: (v: any, cn: any) => format(new Date(cn.date), 'dd MMM yyyy') },
+          { key: 'amount', label: 'Amount', render: (v: any, cn: any) => formatCurrency(cn.amount) },
+          { key: 'reason', label: 'Reason' },
+          { key: 'status', label: 'Status', render: (v: any, cn: any) => <Badge variant="outline">{cn.status}</Badge> },
+          { key: 'id', label: '', render: (v: any, cn: any) => <Button variant="ghost" size="sm" onClick={() => router.push(`/purchases/credit-notes/${cn.id}`)}>View</Button> },
         ]}
         data={creditNotes}
-        loading={loading}
         emptyMessage="No credit notes found"
       />
     </div>

@@ -8,9 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card } from '@/components/ui/card'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { formatCurrency } from '@/lib/utils'
 
 interface OutstandingInvoice { id: string; invoiceNo: string; amount: number; paid: number }
-interface Payment { id: string; paymentNo: string; amount: number; date: string }
+interface Payment { id: string; paymentNo: string; amount: number; date: string; status: string }
 
 export default function SalesAllocationsPage() {
   const [allocationType, setAllocationType] = useState<'payment' | 'creditNote'>('payment')
@@ -77,7 +78,7 @@ export default function SalesAllocationsPage() {
       <Card className="p-6 space-y-4">
         <div className="space-y-2">
           <Label>Customer</Label>
-          <Select value={customerId} onValueChange={(v) => { setCustomerId(v); loadData(v) }}>
+          <Select value={customerId} onValueChange={(v) => { if (v) { setCustomerId(v); loadData(v) } }}>
             <SelectTrigger><SelectValue placeholder="Select customer" /></SelectTrigger>
             <SelectContent>{customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
           </Select>
@@ -94,11 +95,11 @@ export default function SalesAllocationsPage() {
         {allocationType === 'payment' ? (
           <div className="space-y-2">
             <Label>Select Payment</Label>
-            <Select value={selectedPaymentId} onValueChange={setSelectedPaymentId}>
+            <Select value={selectedPaymentId} onValueChange={(v) => v && setSelectedPaymentId(v)}>
               <SelectTrigger><SelectValue placeholder="Select payment" /></SelectTrigger>
               <SelectContent>
                 {payments.filter(p => p.status === 'completed').map(p => (
-                  <SelectItem key={p.id} value={p.id}>{p.paymentNo} - ${p.amount.toLocaleString()}</SelectItem>
+                  <SelectItem key={p.id} value={p.id}>{p.paymentNo} - {formatCurrency(p.amount)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -106,11 +107,11 @@ export default function SalesAllocationsPage() {
         ) : (
           <div className="space-y-2">
             <Label>Select Credit Note</Label>
-            <Select value={selectedCreditNoteId} onValueChange={setSelectedCreditNoteId}>
+            <Select value={selectedCreditNoteId} onValueChange={(v) => v && setSelectedCreditNoteId(v)}>
               <SelectTrigger><SelectValue placeholder="Select credit note" /></SelectTrigger>
               <SelectContent>
                 {creditNotes.filter(cn => cn.status === 'issued').map(cn => (
-                  <SelectItem key={cn.id} value={cn.id}>{cn.creditNoteNo} - ${cn.amount.toLocaleString()}</SelectItem>
+                  <SelectItem key={cn.id} value={cn.id}>{cn.creditNoteNo} - {formatCurrency(cn.amount)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -124,7 +125,7 @@ export default function SalesAllocationsPage() {
         <Card className="p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">Outstanding Invoices</h2>
-            <p className="text-sm text-muted-foreground">Remaining: ${remaining.toFixed(2)}</p>
+            <p className="text-sm text-muted-foreground">Remaining: {formatCurrency(remaining)}</p>
           </div>
           <table className="w-full text-sm">
             <thead>
@@ -142,9 +143,9 @@ export default function SalesAllocationsPage() {
                 return (
                   <tr key={inv.id} className="border-b last:border-0">
                     <td className="py-2">{inv.invoiceNo}</td>
-                    <td className="py-2 text-right">${inv.amount.toLocaleString()}</td>
-                    <td className="py-2 text-right">${inv.paid.toLocaleString()}</td>
-                    <td className="py-2 text-right">${due.toLocaleString()}</td>
+                    <td className="py-2 text-right">{formatCurrency(inv.amount)}</td>
+                    <td className="py-2 text-right">{formatCurrency(inv.paid)}</td>
+                    <td className="py-2 text-right">{formatCurrency(due)}</td>
                     <td className="py-2 text-right">
                       <Input
                         type="number"
@@ -165,7 +166,7 @@ export default function SalesAllocationsPage() {
             </tbody>
           </table>
           <div className="flex justify-between items-center pt-2">
-            <p className="text-sm text-muted-foreground">Total to allocate: ${totalAllocated.toFixed(2)}</p>
+            <p className="text-sm text-muted-foreground">Total to allocate: {formatCurrency(totalAllocated)}</p>
             <Button onClick={handleSave} disabled={saving || totalAllocated <= 0}>
               {saving ? 'Saving...' : 'Save Allocations'}
             </Button>

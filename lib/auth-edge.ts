@@ -1,7 +1,7 @@
 import { jwtVerify } from 'jose'
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'fallback-secret-change-in-production'
+  process.env.JWT_SECRET
 )
 
 export async function verifyToken(token: string) {

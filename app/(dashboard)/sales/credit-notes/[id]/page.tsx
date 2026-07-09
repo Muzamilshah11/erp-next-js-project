@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card'
 import { ArrowLeft, CheckCircle, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { format } from 'date-fns'
+import { formatCurrency } from '@/lib/utils'
 
 const statusColors: Record<string, string> = {
   draft: 'bg-yellow-100 text-yellow-800',
@@ -75,7 +76,7 @@ export default function SalesCreditNoteDetailPage() {
         </Card>
         <Card className="p-4">
           <p className="text-xs text-muted-foreground">Total Amount</p>
-          <p className="text-sm font-medium">${creditNote.amount.toLocaleString()}</p>
+          <p className="text-sm font-medium">{formatCurrency(creditNote.amount)}</p>
         </Card>
         <Card className="p-4">
           <p className="text-xs text-muted-foreground">Reason</p>
@@ -103,8 +104,8 @@ export default function SalesCreditNoteDetailPage() {
                 <td className="py-2">{item.warehouse?.name || '-'}</td>
                 <td className="py-2">{item.description}</td>
                 <td className="py-2 text-right">{item.quantity}</td>
-                <td className="py-2 text-right">${item.price.toFixed(2)}</td>
-                <td className="py-2 text-right">${(item.quantity * item.price).toFixed(2)}</td>
+                <td className="py-2 text-right">{formatCurrency(item.price)}</td>
+                <td className="py-2 text-right">{formatCurrency(item.quantity * item.price)}</td>
               </tr>
             ))}
           </tbody>
@@ -125,7 +126,7 @@ export default function SalesCreditNoteDetailPage() {
               {creditNote.allocations.map((a: any) => (
                 <tr key={a.id} className="border-b last:border-0">
                   <td className="py-2">{a.invoice?.invoiceNo || '-'}</td>
-                  <td className="py-2 text-right">${a.amount.toFixed(2)}</td>
+                  <td className="py-2 text-right">{formatCurrency(a.amount)}</td>
                 </tr>
               ))}
             </tbody>

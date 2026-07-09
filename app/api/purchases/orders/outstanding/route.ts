@@ -8,7 +8,7 @@ export async function GET() {
   try {
     const orders = await prisma.purchaseOrder.findMany({
       where: { status: { not: 'cancelled' } },
-      include: { supplier: { select: { id: true, name: true } }, items: true, grns: true },
+      include: { supplier: { select: { id: true, name: true } }, items: true, grns: { include: { items: true } } },
       orderBy: { createdAt: 'desc' },
     })
     const outstanding = orders.map((order) => {

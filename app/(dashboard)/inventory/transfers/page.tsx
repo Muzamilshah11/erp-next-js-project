@@ -109,8 +109,6 @@ export default function TransfersPage() {
     catch { setError('Failed to delete') }
   }
 
-  const selectedFromItems = items.filter(i => i.warehouseId === form.fromWarehouseId || !i.warehouseId)
-
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">

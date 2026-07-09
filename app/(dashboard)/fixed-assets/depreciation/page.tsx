@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { DataTable } from '@/components/shared/data-table'
 import { Play, Loader2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { formatCurrency } from '@/lib/utils'
 
 interface DeprEntry { id: string; period: string; amount: number; status: string; createdAt: string; asset: { id: string; name: string; assetNo: string } }
 
@@ -67,7 +68,7 @@ export default function DepreciationPage() {
           { key: 'period', label: 'Period', sortable: true },
           { key: 'asset.assetNo', label: 'Asset No' },
           { key: 'asset.name', label: 'Asset Name' },
-          { key: 'amount', label: 'Amount', render: (_: unknown, row: DeprEntry) => `$${row.amount.toLocaleString()}` },
+          { key: 'amount', label: 'Amount', render: (_: unknown, row: DeprEntry) => formatCurrency(row.amount) },
           { key: 'status', label: 'Status' },
           { key: 'createdAt', label: 'Posted Date', render: (_: unknown, row: DeprEntry) => new Date(row.createdAt).toLocaleDateString() },
         ]} data={entries} title="Depreciation Entries" />

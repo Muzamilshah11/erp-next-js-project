@@ -15,9 +15,9 @@ export async function GET(request: Request) {
     if (classId) where.classId = classId
     if (status) where.status = status
     if (q) where.OR = [
-      { name: { contains: q, mode: 'insensitive' } },
-      { assetNo: { contains: q, mode: 'insensitive' } },
-      { serialNo: { contains: q, mode: 'insensitive' } },
+      { name: { contains: q, mode: 'insensitive' as const } },
+      { assetNo: { contains: q, mode: 'insensitive' as const } },
+      { serialNo: { contains: q, mode: 'insensitive' as const } },
     ]
 
     const assets = await prisma.asset.findMany({

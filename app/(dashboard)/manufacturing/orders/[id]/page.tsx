@@ -97,7 +97,7 @@ export default function WorkOrderDetailPage() {
               <div className="flex items-center gap-3">
                 <div className={`w-3 h-3 rounded-full ${it.type === 'finished-good' ? 'bg-green-500' : 'bg-blue-500'}`} />
                 <div>
-                  <p className="text-sm font-medium text-foreground">{it.item?.name || it.itemId}</p>
+                  <p className="text-sm font-medium text-foreground">{it.item?.name || it.item?.id || '-'}</p>
                   <p className="text-xs text-muted-foreground">{it.item?.sku} — {it.type === 'finished-good' ? 'Finished Good' : 'Component'}</p>
                 </div>
               </div>

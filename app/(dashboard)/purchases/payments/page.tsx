@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import { format } from 'date-fns'
+import { formatCurrency } from '@/lib/utils'
 
 export default function PurchasesPaymentsPage() {
   const router = useRouter()
@@ -28,16 +29,15 @@ export default function PurchasesPaymentsPage() {
       </div>
       <DataTable
         columns={[
-          { header: 'Payment No', accessor: 'paymentNo' },
-          { header: 'Supplier', accessor: (p: any) => p.supplier?.name || '-' },
-          { header: 'Date', accessor: (p: any) => format(new Date(p.date), 'dd MMM yyyy') },
-          { header: 'Amount', accessor: (p: any) => `$${p.amount.toLocaleString()}` },
-          { header: 'Method', accessor: 'paymentMethod' },
-          { header: 'Status', accessor: (p: any) => <Badge variant="outline">{p.status}</Badge> },
-          { header: '', accessor: (p: any) => <Button variant="ghost" size="sm" onClick={() => router.push(`/purchases/payments/${p.id}`)}>View</Button> },
+          { key: 'paymentNo', label: 'Payment No' },
+          { key: 'supplier', label: 'Supplier', render: (v: any, p: any) => p.supplier?.name || '-' },
+          { key: 'date', label: 'Date', render: (v: any, p: any) => format(new Date(p.date), 'dd MMM yyyy') },
+          { key: 'amount', label: 'Amount', render: (v: any, p: any) => formatCurrency(p.amount) },
+          { key: 'paymentMethod', label: 'Method' },
+          { key: 'status', label: 'Status', render: (v: any, p: any) => <Badge variant="outline">{p.status}</Badge> },
+          { key: 'id', label: '', render: (v: any, p: any) => <Button variant="ghost" size="sm" onClick={() => router.push(`/purchases/payments/${p.id}`)}>View</Button> },
         ]}
         data={payments}
-        loading={loading}
         emptyMessage="No payments found"
       />
     </div>

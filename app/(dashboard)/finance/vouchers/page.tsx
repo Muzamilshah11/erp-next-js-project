@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, Loader2 } from 'lucide-react'
 import { format } from 'date-fns'
+import { formatCurrency } from '@/lib/utils'
 
 const typeLabels: Record<string, string> = {
   journal: 'Journal',
@@ -64,7 +65,7 @@ export default function VouchersPage() {
         </Button>
       </div>
 
-      <Tabs value={tab} onValueChange={setTab}>
+      <Tabs value={tab} onValueChange={(v) => v && setTab(v)}>
         <TabsList>
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="draft">Draft</TabsTrigger>
@@ -73,17 +74,18 @@ export default function VouchersPage() {
         <TabsContent value={tab} className="mt-4">
           <DataTable
             columns={[
-              { header: 'Entry No', accessor: 'entryNo' },
-              { header: 'Type', accessor: (e: any) => <Badge className={typeColors[e.type] || ''}>{typeLabels[e.type] || e.type}</Badge> },
-              { header: 'Date', accessor: (e: any) => format(new Date(e.date), 'dd MMM yyyy') },
-              { header: 'Description', accessor: 'description' },
-              { header: 'Payee', accessor: (e: any) => e.payee || '-' },
-              { header: 'Debit', accessor: (e: any) => `$${e.totalDebit.toLocaleString()}` },
-              { header: 'Credit', accessor: (e: any) => `$${e.totalCredit.toLocaleString()}` },
-              { header: 'Status', accessor: (e: any) => <Badge className={statusColors[e.status] || ''}>{e.status}</Badge> },
+              { key: 'entryNo', label: 'Entry No' },
+              { key: 'type', label: 'Type', render: (v: any, e: any) => <Badge className={typeColors[e.type] || ''}>{typeLabels[e.type] || e.type}</Badge> },
+              { key: 'date', label: 'Date', render: (v: any, e: any) => format(new Date(e.date), 'dd MMM yyyy') },
+              { key: 'description', label: 'Description' },
+              { key: 'payee', label: 'Payee', render: (v: any, e: any) => e.payee || '-' },
+              { key: 'totalDebit', label: 'Debit', render: (v: any, e: any) => formatCurrency(e.totalDebit) },
+              { key: 'totalCredit', label: 'Credit', render: (v: any, e: any) => formatCurrency(e.totalCredit) },
+              { key: 'status', label: 'Status', render: (v: any, e: any) => <Badge className={statusColors[e.status] || ''}>{e.status}</Badge> },
               {
-                header: '',
-                accessor: (e: any) => (
+                key: 'id',
+                label: '',
+                render: (v: any, e: any) => (
                   <Button variant="ghost" size="sm" onClick={() => router.push(`/finance/vouchers/${e.id}`)}>
                     View
                   </Button>
@@ -91,7 +93,6 @@ export default function VouchersPage() {
               },
             ]}
             data={entries}
-            loading={loading}
             emptyMessage="No vouchers found"
           />
         </TabsContent>

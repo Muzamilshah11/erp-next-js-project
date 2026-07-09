@@ -5,6 +5,7 @@ import { DataTable } from '@/components/shared/data-table'
 import { Plus, Search, X, Loader2, Eye } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { formatCurrency } from '@/lib/utils'
 
 interface Asset { id: string; assetNo: string; name: string; category: { id: string; name: string }; class: { id: string; name: string }; purchaseDate: string; purchaseCost: number; currentValue: number; netBookValue: number; status: string; location: string | null; serialNo: string | null }
 interface Category { id: string; name: string }
@@ -105,8 +106,8 @@ export default function AssetsPage() {
           { key: 'category.name', label: 'Category' },
           { key: 'class.name', label: 'Class' },
           { key: 'purchaseDate', label: 'Purchase Date', render: (_: unknown, row: Asset) => new Date(row.purchaseDate).toLocaleDateString() },
-          { key: 'purchaseCost', label: 'Cost', render: (_: unknown, row: Asset) => `$${row.purchaseCost.toLocaleString()}` },
-          { key: 'currentValue', label: 'Current Value', render: (_: unknown, row: Asset) => `$${row.currentValue.toLocaleString()}` },
+          { key: 'purchaseCost', label: 'Cost', render: (_: unknown, row: Asset) => formatCurrency(row.purchaseCost) },
+          { key: 'currentValue', label: 'Current Value', render: (_: unknown, row: Asset) => formatCurrency(row.currentValue) },
           { key: 'status', label: 'Status', render: (_: unknown, row: Asset) => <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[row.status] || ''}`}>{row.status}</span> },
         ]} data={assets} title="All Assets" actions={(row: Asset) => (
           <Link href={`/fixed-assets/assets/${row.id}`} className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors inline-flex"><Eye className="w-4 h-4" /></Link>

@@ -56,7 +56,7 @@ export async function POST(request: Request) {
       const loanInstallmentAmount = activeLoan && activeLoan.remainingAmount > 0 ? activeLoan.installmentAmount : 0
 
       const leaveDays = await prisma.leaveApplication.count({
-        where: { employeeId: emp.id, month, year, status: 'approved' },
+        where: { employeeId: emp.id, startDate: { gte: new Date(year, month - 1, 1), lt: new Date(year, month, 1) }, status: 'approved' },
       })
       const leavesDeduction = leaveDays > 0 ? (emp.salary / 26) * leaveDays : 0
 

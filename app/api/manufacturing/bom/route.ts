@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const q = searchParams.get('q')?.trim()
-    const where = q ? { OR: [{ name: { contains: q, mode: 'insensitive' } }, { item: { name: { contains: q, mode: 'insensitive' } } }] } : {}
+    const where = q ? { OR: [{ name: { contains: q, mode: 'insensitive' as const } }, { item: { name: { contains: q, mode: 'insensitive' as const } } }] } : {}
     const boms = await prisma.bOM.findMany({
       where,
       include: { item: { select: { id: true, name: true, sku: true } }, items: { include: { item: { select: { id: true, name: true, sku: true, unitPrice: true } } } }, _count: { select: { items: true, workOrders: true } } },

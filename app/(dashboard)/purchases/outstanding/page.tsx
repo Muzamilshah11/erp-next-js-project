@@ -35,26 +35,27 @@ export default function OutstandingPOsPage() {
 
       <DataTable
         columns={[
-          { header: 'PO No', accessor: 'orderNo' },
-          { header: 'Supplier', accessor: (o: any) => o.supplier?.name || '-' },
-          { header: 'Date', accessor: (o: any) => format(new Date(o.date), 'dd MMM yyyy') },
-          { header: 'Ordered', accessor: (o: any) => o.totalOrdered },
-          { header: 'Received', accessor: (o: any) => o.totalReceived },
+          { key: 'orderNo', label: 'PO No' },
+          { key: 'supplier', label: 'Supplier', render: (v: any, o: any) => o.supplier?.name || '-' },
+          { key: 'date', label: 'Date', render: (v: any, o: any) => format(new Date(o.date), 'dd MMM yyyy') },
+          { key: 'totalOrdered', label: 'Ordered', render: (v: any, o: any) => o.totalOrdered },
+          { key: 'totalReceived', label: 'Received', render: (v: any, o: any) => o.totalReceived },
           {
-            header: 'Balance',
-            accessor: (o: any) => (
+            key: 'balance',
+            label: 'Balance',
+            render: (v: any, o: any) => (
               <span className={o.balance > 0 ? 'text-amber-600 font-semibold' : 'text-green-600'}>
                 {o.balance > 0 ? <><AlertTriangle className="w-3 h-3 inline mr-1" />{o.balance}</> : o.balance}
               </span>
             ),
           },
           {
-            header: 'Status',
-            accessor: (o: any) => <Badge className={statusColors[o.status] || ''}>{o.status}</Badge>,
+            key: 'status',
+            label: 'Status',
+            render: (v: any, o: any) => <Badge className={statusColors[o.status] || ''}>{o.status}</Badge>,
           },
         ]}
         data={orders.filter(o => o.balance > 0)}
-        loading={false}
         emptyMessage="All purchase orders are fully received"
       />
     </div>

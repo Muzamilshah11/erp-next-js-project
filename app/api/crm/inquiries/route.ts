@@ -10,14 +10,13 @@ export async function GET(request: Request) {
     const type = searchParams.get('type') || 'tickets'
 
     if (type === 'tickets') {
-      const [total, open, inProgress, resolved, closed, byPriority] = await Promise.all([
+      const [total, openCount, byPriority, recent] = await Promise.all([
         prisma.ticket.count(),
         prisma.ticket.findMany({ where: { status: { name: 'Open' } }, take: 1 }).then(r => r.length > 0 ? prisma.ticket.count({ where: { status: { name: 'Open' } } }) : 0),
-        prisma.ticket.count({ where: { priority: 'high' } }),
         prisma.ticket.groupBy({ by: ['priority'], _count: true }),
+        prisma.ticket.findMany({ take: 5, orderBy: { createdAt: 'desc' }, include: { customer: { select: { name: true } }, status: { select: { name: true, color: true } }, assignee: { select: { fullName: true } } } }),
       ])
-      const recent = await prisma.ticket.findMany({ take: 5, orderBy: { createdAt: 'desc' }, include: { customer: { select: { name: true } }, status: { select: { name: true, color: true } }, assignee: { select: { fullName: true } } } })
-      return NextResponse.json({ inquiry: { total, open: inProgress, resolved, closed, byPriority: byPriority.map(p => ({ priority: p.priority, count: p._count })), recent } })
+      return NextResponse.json({ inquiry: { total, open: openCount, byPriority: byPriority.map(p => ({ priority: p.priority, count: p._count })), recent } })
     }
 
     if (type === 'tasks') {

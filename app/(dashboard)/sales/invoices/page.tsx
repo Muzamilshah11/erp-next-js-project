@@ -103,11 +103,11 @@ export default function InvoicesPage() {
       const iData = await iRes.json()
       const cData = await cRes.json()
       if (!iRes.ok) throw new Error(iData.error)
-      setInvoices((iData.invoices || []).map((inv: { customer: { name: string }; date: string; dueDate: string; items: unknown[]; id: string; invoiceNo: string; amount: number; paid: number; status: string; voidedAt?: string | null; voidedBy?: string | null; voidReason?: string | null }) => ({
+      setInvoices((iData.invoices || []).map((inv: { customer: { id: string; name: string }; date: string; dueDate: string; items: unknown[]; id: string; invoiceNo: string; amount: number; paid: number; status: string; voidedAt?: string | null; voidedBy?: string | null; voidReason?: string | null }) => ({
         id: inv.id,
         invoiceNo: inv.invoiceNo,
-        customer: inv.customer || { name: 'Unknown' },
-        customerId: inv.customerId,
+        customer: inv.customer || { id: '', name: 'Unknown' },
+        customerId: inv.customer?.id || '',
         date: inv.date,
         dueDate: inv.dueDate,
         amount: inv.amount,

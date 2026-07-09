@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     if (customerId) where.customerId = customerId
     if (assignedTo) where.assignedTo = assignedTo
     if (status) where.status = status
-    if (q) where.OR = [{ subject: { contains: q, mode: 'insensitive' } }, { queryNo: { contains: q, mode: 'insensitive' } }]
+    if (q) where.OR = [{ subject: { contains: q, mode: 'insensitive' as const } }, { queryNo: { contains: q, mode: 'insensitive' as const } }]
 
     const queries = await prisma.query.findMany({
       where, include: { customer: { select: { id: true, name: true } }, assignee: { select: { id: true, fullName: true } }, source: { select: { id: true, name: true } } },

@@ -15,9 +15,9 @@ export async function GET(request: Request) {
     if (status) where.status = status
     if (q) {
       where.OR = [
-        { entryNo: { contains: q, mode: 'insensitive' } },
-        { description: { contains: q, mode: 'insensitive' } },
-        { payee: { contains: q, mode: 'insensitive' } },
+        { entryNo: { contains: q, mode: 'insensitive' as const } },
+        { description: { contains: q, mode: 'insensitive' as const } },
+        { payee: { contains: q, mode: 'insensitive' as const } },
       ]
     }
     const entries = await prisma.journalEntry.findMany({

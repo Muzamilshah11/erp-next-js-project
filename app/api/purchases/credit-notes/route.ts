@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const q = searchParams.get('q')?.trim()
     const where: Record<string, unknown> = {}
-    if (q) where.OR = [{ creditNoteNo: { contains: q, mode: 'insensitive' } }, { reason: { contains: q, mode: 'insensitive' } }]
+    if (q) where.OR = [{ creditNoteNo: { contains: q, mode: 'insensitive' as const } }, { reason: { contains: q, mode: 'insensitive' as const } }]
     const creditNotes = await prisma.supplierCreditNote.findMany({
       where,
       include: { supplier: { select: { id: true, name: true } }, items: true },

@@ -90,9 +90,7 @@ export default function PersonsGroupsPage() {
         <TabsContent value="persons" className="space-y-4">
           <div className="flex justify-end">
             <Dialog open={showPersonDialog && !editingPerson} onOpenChange={(o) => { setShowPersonDialog(o); if (!o) setEditingPerson(null) }}>
-              <DialogTrigger asChild>
-                <Button><Plus className="w-4 h-4 mr-2" /> Add Person</Button>
-              </DialogTrigger>
+              <DialogTrigger render={<Button />}><Plus className="w-4 h-4 mr-2" /> Add Person</DialogTrigger>
               <DialogContent>
                 <DialogHeader><DialogTitle>{editingPerson ? 'Edit' : 'New'} Sales Person</DialogTitle></DialogHeader>
                 <form onSubmit={savePerson} className="space-y-4">
@@ -171,9 +169,7 @@ export default function PersonsGroupsPage() {
         <TabsContent value="groups" className="space-y-4">
           <div className="flex justify-end">
             <Dialog open={showGroupDialog && !editingGroup} onOpenChange={(o) => { setShowGroupDialog(o); if (!o) setEditingGroup(null) }}>
-              <DialogTrigger asChild>
-                <Button><Plus className="w-4 h-4 mr-2" /> Add Group</Button>
-              </DialogTrigger>
+              <DialogTrigger render={<Button />}><Plus className="w-4 h-4 mr-2" /> Add Group</DialogTrigger>
               <DialogContent>
                 <DialogHeader><DialogTitle>{editingGroup ? 'Edit' : 'New'} Sales Group</DialogTitle></DialogHeader>
                 <form onSubmit={saveGroup} className="space-y-4">

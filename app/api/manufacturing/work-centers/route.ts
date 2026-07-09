@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     if (!body.name) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
-    const workCenter = await prisma.workCenter.create({ data: { name: body.name, description: body.description || null } })
+    const workCenter = await prisma.workCenter.create({ data: { name: body.name, description: body.description || null, status: body.status || 'active' } })
     return NextResponse.json({ workCenter })
   } catch {
     return NextResponse.json({ error: 'Failed to create work center' }, { status: 500 })

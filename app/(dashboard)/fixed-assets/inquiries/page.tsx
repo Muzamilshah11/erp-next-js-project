@@ -5,6 +5,7 @@ import { DataTable } from '@/components/shared/data-table'
 import { Button } from '@/components/ui/button'
 import { Loader2, RefreshCw } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { formatCurrency } from '@/lib/utils'
 
 interface Summary { activeCount: number; disposedCount: number; totalPurchaseCost: number; totalDepreciation: number }
 interface DeprSchedule { id: string; assetNo: string; name: string; category: string; purchaseCost: number; accumulatedDepr: number; netBookValue: number; usefulLife: number; salvageValue: number; lastDepreciation: string }
@@ -53,8 +54,8 @@ export default function InquiriesPage() {
           {[
             { label: 'Active Assets', value: String(summary.activeCount), color: '' },
             { label: 'Disposed/Sold', value: String(summary.disposedCount), color: '' },
-            { label: 'Total Purchase Cost', value: `$${summary.totalPurchaseCost.toLocaleString()}`, color: '' },
-            { label: 'Total Depreciation', value: `$${summary.totalDepreciation.toLocaleString()}`, color: 'text-yellow-600 dark:text-yellow-400' },
+            { label: 'Total Purchase Cost', value: formatCurrency(summary.totalPurchaseCost), color: '' },
+            { label: 'Total Depreciation', value: formatCurrency(summary.totalDepreciation), color: 'text-yellow-600 dark:text-yellow-400' },
           ].map((stat, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} className="bg-card border border-border rounded-xl p-4">
               <div className="text-sm text-muted-foreground">{stat.label}</div>
@@ -67,11 +68,10 @@ export default function InquiriesPage() {
           { key: 'assetNo', label: 'Asset No', sortable: true },
           { key: 'name', label: 'Name', sortable: true },
           { key: 'category', label: 'Category' },
-          { key: 'purchaseCost', label: 'Cost', render: (_: unknown, row: DeprSchedule) => `$${row.purchaseCost.toLocaleString()}` },
-          { key: 'accumulatedDepr', label: 'Accum. Depr', render: (_: unknown, row: DeprSchedule) => `$${row.accumulatedDepr.toLocaleString()}` },
-          { key: 'netBookValue', label: 'NBV', render: (_: unknown, row: DeprSchedule) => `$${row.netBookValue.toLocaleString()}` },
-          { key: 'usefulLife', label: 'Life (Yrs)' },
-          { key: 'salvageValue', label: 'Salvage', render: (_: unknown, row: DeprSchedule) => `$${row.salvageValue}` },
+          { key: 'purchaseCost', label: 'Cost', render: (_: unknown, row: DeprSchedule) => formatCurrency(row.purchaseCost) },
+          { key: 'accumulatedDepr', label: 'Accum. Depr', render: (_: unknown, row: DeprSchedule) => formatCurrency(row.accumulatedDepr) },
+          { key: 'netBookValue', label: 'NBV', render: (_: unknown, row: DeprSchedule) => formatCurrency(row.netBookValue) },
+          { key: 'salvageValue', label: 'Salvage', render: (_: unknown, row: DeprSchedule) => formatCurrency(row.salvageValue) },
           { key: 'lastDepreciation', label: 'Last Depr' },
         ]} data={schedule} title="Depreciation Schedule" />
       ) : null}

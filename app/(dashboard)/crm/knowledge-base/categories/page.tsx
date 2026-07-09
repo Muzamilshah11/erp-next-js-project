@@ -16,13 +16,13 @@ export default function KbCategoriesPage() {
   const [form, setForm] = useState({ name: '', description: '', parentId: '' })
   const [saving, setSaving] = useState(false)
 
-  const fetch = async () => {
+  const fetchCategories = async () => {
     setLoading(true); setError('')
     try { const res = await fetch('/api/crm/kb-categories'); const d = await res.json(); if (!res.ok) throw new Error(d.error); setCategories(d.categories) }
     catch (e) { setError(e instanceof Error ? e.message : 'Failed to load') }
     finally { setLoading(false) }
   }
-  useEffect(() => { fetch() }, [])
+  useEffect(() => { fetchCategories() }, [])
 
   const openNew = () => { setEditing(null); setForm({ name: '', description: '', parentId: '' }); setShowForm(true) }
   const openEdit = (c: Category) => { setEditing(c); setForm({ name: c.name, description: c.description || '', parentId: c.parentId || '' }); setShowForm(true) }
@@ -34,14 +34,14 @@ export default function KbCategoriesPage() {
       const url = editing ? `/api/crm/kb-categories/${editing.id}` : '/api/crm/kb-categories'
       const res = await fetch(url, { method: editing ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
       if (!res.ok) { const d = await res.json(); throw new Error(d.error) }
-      setShowForm(false); setEditing(null); fetch()
+      setShowForm(false); setEditing(null); fetchCategories()
     } catch (e) { setError(e instanceof Error ? e.message : 'Failed to save') }
     finally { setSaving(false) }
   }
 
   const handleDelete = async (c: Category) => {
     if (!window.confirm(`Delete "${c.name}"?`)) return
-    try { const res = await fetch(`/api/crm/kb-categories/${c.id}`, { method: 'DELETE' }); const d = await res.json(); if (!res.ok) throw new Error(d.error); fetch() }
+    try { const res = await fetch(`/api/crm/kb-categories/${c.id}`, { method: 'DELETE' }); const d = await res.json(); if (!res.ok) throw new Error(d.error); fetchCategories() }
     catch (e) { setError(e instanceof Error ? e.message : 'Failed to delete') }
   }
 

@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import { format } from 'date-fns'
+import { formatCurrency } from '@/lib/utils'
 
 const statusColors: Record<string, string> = {
   draft: 'bg-yellow-100 text-yellow-800',
@@ -39,18 +40,20 @@ export default function SalesCreditNotesPage() {
       </div>
       <DataTable
         columns={[
-          { header: 'Credit Note No', accessor: 'creditNoteNo' },
-          { header: 'Customer', accessor: (cn: any) => cn.customer?.name || '-' },
-          { header: 'Date', accessor: (cn: any) => format(new Date(cn.date), 'dd MMM yyyy') },
-          { header: 'Amount', accessor: (cn: any) => `$${cn.amount.toLocaleString()}` },
-          { header: 'Reason', accessor: 'reason' },
+          { key: 'creditNoteNo', label: 'Credit Note No' },
+          { key: 'customer', label: 'Customer', render: (v: any, cn: any) => cn.customer?.name || '-' },
+          { key: 'date', label: 'Date', render: (v: any, cn: any) => format(new Date(cn.date), 'dd MMM yyyy') },
+          { key: 'amount', label: 'Amount', render: (v: any, cn: any) => formatCurrency(cn.amount) },
+          { key: 'reason', label: 'Reason' },
           {
-            header: 'Status',
-            accessor: (cn: any) => <Badge className={statusColors[cn.status] || ''}>{cn.status}</Badge>,
+            key: 'status',
+            label: 'Status',
+            render: (v: any, cn: any) => <Badge className={statusColors[cn.status] || ''}>{cn.status}</Badge>,
           },
           {
-            header: '',
-            accessor: (cn: any) => (
+            key: 'id',
+            label: '',
+            render: (v: any, cn: any) => (
               <Button variant="ghost" size="sm" onClick={() => router.push(`/sales/credit-notes/${cn.id}`)}>
                 View
               </Button>
@@ -58,7 +61,6 @@ export default function SalesCreditNotesPage() {
           },
         ]}
         data={creditNotes}
-        loading={loading}
         emptyMessage="No credit notes found"
       />
     </div>

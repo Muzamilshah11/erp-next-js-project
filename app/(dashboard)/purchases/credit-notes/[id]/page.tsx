@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { format } from 'date-fns'
+import { formatCurrency } from '@/lib/utils'
 
 export default function PurchaseCreditNoteDetailPage() {
   const params = useParams()
@@ -36,14 +37,14 @@ export default function PurchaseCreditNoteDetailPage() {
       <div className="grid grid-cols-3 gap-4">
         <Card className="p-4"><p className="text-xs text-muted-foreground">Supplier</p><p className="text-sm font-medium">{creditNote.supplier?.name}</p></Card>
         <Card className="p-4"><p className="text-xs text-muted-foreground">Date</p><p className="text-sm font-medium">{format(new Date(creditNote.date), 'dd MMM yyyy')}</p></Card>
-        <Card className="p-4"><p className="text-xs text-muted-foreground">Amount</p><p className="text-sm font-medium">${creditNote.amount.toLocaleString()}</p></Card>
+        <Card className="p-4"><p className="text-xs text-muted-foreground">Amount</p><p className="text-sm font-medium">{formatCurrency(creditNote.amount)}</p></Card>
       </div>
 
       <Card className="p-6">
         <h2 className="text-lg font-semibold mb-4">Items</h2>
         <table className="w-full text-sm">
           <thead><tr className="border-b text-left text-muted-foreground"><th className="pb-2">Description</th><th className="pb-2 text-right">Qty</th><th className="pb-2 text-right">Price</th><th className="pb-2 text-right">Total</th></tr></thead>
-          <tbody>{creditNote.items?.map((item: any) => <tr key={item.id} className="border-b last:border-0"><td className="py-2">{item.description}</td><td className="py-2 text-right">{item.quantity}</td><td className="py-2 text-right">${item.price.toFixed(2)}</td><td className="py-2 text-right">${(item.quantity * item.price).toFixed(2)}</td></tr>)}</tbody>
+          <tbody>{creditNote.items?.map((item: any) => <tr key={item.id} className="border-b last:border-0"><td className="py-2">{item.description}</td><td className="py-2 text-right">{item.quantity}</td><td className="py-2 text-right">{formatCurrency(item.price)}</td><td className="py-2 text-right">{formatCurrency(item.quantity * item.price)}</td></tr>)}</tbody>
         </table>
       </Card>
 
@@ -52,7 +53,7 @@ export default function PurchaseCreditNoteDetailPage() {
           <h2 className="text-lg font-semibold mb-4">Allocations</h2>
           <table className="w-full text-sm">
             <thead><tr className="border-b text-left text-muted-foreground"><th className="pb-2">Bill</th><th className="pb-2 text-right">Amount</th></tr></thead>
-            <tbody>{creditNote.allocations.map((a: any) => <tr key={a.id} className="border-b last:border-0"><td className="py-2">{a.bill?.billNo || '-'}</td><td className="py-2 text-right">${a.amount.toFixed(2)}</td></tr>)}</tbody>
+            <tbody>{creditNote.allocations.map((a: any) => <tr key={a.id} className="border-b last:border-0"><td className="py-2">{a.bill?.billNo || '-'}</td><td className="py-2 text-right">{formatCurrency(a.amount)}</td></tr>)}</tbody>
           </table>
         </Card>
       )}

@@ -37,12 +37,14 @@ export function Header() {
             <img
               src={company.logoUrl}
               alt={company.companyName || 'Company'}
-              className="w-8 h-8 rounded-lg object-contain bg-slate-800"
+              className="w-10 h-10 md:w-14 md:h-14 rounded-lg object-contain bg-slate-800"
             />
           ) : (
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
-              <BarChart3 className="w-4 h-4 text-white" />
-            </div>
+            <img
+              src="/logoo.png"
+              alt="ERP Pro"
+              className="w-10 h-10 md:w-14 md:h-14 object-contain"
+            />
           )}
         </div>
 

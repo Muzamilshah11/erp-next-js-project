@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card } from '@/components/ui/card'
 import { Plus, Trash2, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { formatCurrency } from '@/lib/utils'
 
 export default function NewPurchaseCreditNotePage() {
   const router = useRouter()
@@ -44,7 +45,7 @@ export default function NewPurchaseCreditNotePage() {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Supplier</Label>
-            <Select value={supplierId} onValueChange={setSupplierId}>
+            <Select value={supplierId} onValueChange={(v) => v && setSupplierId(v)}>
               <SelectTrigger><SelectValue placeholder="Select supplier" /></SelectTrigger>
               <SelectContent>{suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
             </Select>
@@ -81,12 +82,12 @@ export default function NewPurchaseCreditNotePage() {
             </div>
             <div className="col-span-2 space-y-1">
               <Label className="text-xs">Total</Label>
-              <p className="text-sm font-medium pt-1">${(it.quantity * it.price).toFixed(2)}</p>
+              <p className="text-sm font-medium pt-1">{formatCurrency(it.quantity * it.price)}</p>
             </div>
             <div className="col-span-1"><Button variant="ghost" size="sm" onClick={() => setItems(items.filter((_, i) => i !== idx))}><Trash2 className="w-4 h-4 text-red-500" /></Button></div>
           </div>
         ))}
-        {items.length > 0 && <div className="flex justify-end pt-2"><p className="text-lg font-semibold">Total: ${total.toFixed(2)}</p></div>}
+        {items.length > 0 && <div className="flex justify-end pt-2"><p className="text-lg font-semibold">Total: {formatCurrency(total)}</p></div>}
       </Card>
 
       <div className="flex justify-end gap-3">

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, Loader2 } from 'lucide-react'
 import { format } from 'date-fns'
+import { formatCurrency } from '@/lib/utils'
 
 export default function OutstandingChequesPage() {
   const [cheques, setCheques] = useState<any[]>([])
@@ -38,16 +39,17 @@ export default function OutstandingChequesPage() {
 
       <DataTable
         columns={[
-          { header: 'Date', accessor: (c: any) => format(new Date(c.date), 'dd MMM yyyy') },
-          { header: 'Cheque No', accessor: 'chequeNo' },
-          { header: 'Voucher', accessor: 'entryNo' },
-          { header: 'Payee', accessor: 'payee' },
-          { header: 'Description', accessor: 'description' },
-          { header: 'Bank Account', accessor: 'bankAccount' },
-          { header: 'Amount', accessor: (c: any) => `$${c.amount.toLocaleString()}` },
+          { key: 'date', label: 'Date', render: (v: any, c: any) => format(new Date(c.date), 'dd MMM yyyy') },
+          { key: 'chequeNo', label: 'Cheque No' },
+          { key: 'entryNo', label: 'Voucher' },
+          { key: 'payee', label: 'Payee' },
+          { key: 'description', label: 'Description' },
+          { key: 'bankAccount', label: 'Bank Account' },
+          { key: 'amount', label: 'Amount', render: (v: any, c: any) => formatCurrency(c.amount) },
           {
-            header: '',
-            accessor: (c: any) => (
+            key: 'id',
+            label: '',
+            render: (v: any, c: any) => (
               <Button
                 size="sm"
                 variant="outline"
@@ -61,7 +63,6 @@ export default function OutstandingChequesPage() {
           },
         ]}
         data={cheques}
-        loading={loading}
         emptyMessage="No outstanding cheques"
       />
     </div>

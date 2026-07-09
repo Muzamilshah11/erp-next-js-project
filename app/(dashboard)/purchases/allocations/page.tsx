@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card } from '@/components/ui/card'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { formatCurrency } from '@/lib/utils'
 
 export default function PurchaseAllocationsPage() {
   const [allocationType, setAllocationType] = useState<'payment' | 'creditNote'>('payment')
@@ -69,7 +70,7 @@ export default function PurchaseAllocationsPage() {
       <Card className="p-6 space-y-4">
         <div className="space-y-2">
           <Label>Supplier</Label>
-          <Select value={supplierId} onValueChange={(v) => { setSupplierId(v); loadData(v) }}>
+          <Select value={supplierId} onValueChange={(v) => { if (v) { setSupplierId(v); loadData(v) } }}>
             <SelectTrigger><SelectValue placeholder="Select supplier" /></SelectTrigger>
             <SelectContent>{suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
           </Select>
@@ -84,17 +85,17 @@ export default function PurchaseAllocationsPage() {
         {allocationType === 'payment' ? (
           <div className="space-y-2">
             <Label>Select Payment</Label>
-            <Select value={selectedPaymentId} onValueChange={setSelectedPaymentId}>
+            <Select value={selectedPaymentId} onValueChange={(v) => v && setSelectedPaymentId(v)}>
               <SelectTrigger><SelectValue placeholder="Select payment" /></SelectTrigger>
-              <SelectContent>{payments.filter(p => p.status === 'completed').map(p => <SelectItem key={p.id} value={p.id}>{p.paymentNo} - ${p.amount.toLocaleString()}</SelectItem>)}</SelectContent>
+              <SelectContent>{payments.filter(p => p.status === 'completed').map(p => <SelectItem key={p.id} value={p.id}>{p.paymentNo} - {formatCurrency(p.amount)}</SelectItem>)}</SelectContent>
             </Select>
           </div>
         ) : (
           <div className="space-y-2">
             <Label>Select Credit Note</Label>
-            <Select value={selectedCreditNoteId} onValueChange={setSelectedCreditNoteId}>
+            <Select value={selectedCreditNoteId} onValueChange={(v) => v && setSelectedCreditNoteId(v)}>
               <SelectTrigger><SelectValue placeholder="Select credit note" /></SelectTrigger>
-              <SelectContent>{creditNotes.map(cn => <SelectItem key={cn.id} value={cn.id}>{cn.creditNoteNo} - ${cn.amount.toLocaleString()}</SelectItem>)}</SelectContent>
+              <SelectContent>{creditNotes.map(cn => <SelectItem key={cn.id} value={cn.id}>{cn.creditNoteNo} - {formatCurrency(cn.amount)}</SelectItem>)}</SelectContent>
             </Select>
           </div>
         )}
@@ -106,7 +107,7 @@ export default function PurchaseAllocationsPage() {
         <Card className="p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">Outstanding Bills</h2>
-            <p className="text-sm text-muted-foreground">Remaining: ${remaining.toFixed(2)}</p>
+            <p className="text-sm text-muted-foreground">Remaining: {formatCurrency(remaining)}</p>
           </div>
           <table className="w-full text-sm">
             <thead>
@@ -120,9 +121,9 @@ export default function PurchaseAllocationsPage() {
                 return (
                   <tr key={bill.id} className="border-b last:border-0">
                     <td className="py-2">{bill.billNo}</td>
-                    <td className="py-2 text-right">${bill.amount.toLocaleString()}</td>
-                    <td className="py-2 text-right">${bill.paid.toLocaleString()}</td>
-                    <td className="py-2 text-right">${due.toLocaleString()}</td>
+                    <td className="py-2 text-right">{formatCurrency(bill.amount)}</td>
+                    <td className="py-2 text-right">{formatCurrency(bill.paid)}</td>
+                    <td className="py-2 text-right">{formatCurrency(due)}</td>
                     <td className="py-2 text-right">
                       <Input type="number" min={0} max={due} step="0.01" className="w-28 ml-auto text-right"
                         value={allocations[bill.id] || ''}
@@ -134,7 +135,7 @@ export default function PurchaseAllocationsPage() {
             </tbody>
           </table>
           <div className="flex justify-between items-center pt-2">
-            <p className="text-sm text-muted-foreground">Total to allocate: ${totalAllocated.toFixed(2)}</p>
+            <p className="text-sm text-muted-foreground">Total to allocate: {formatCurrency(totalAllocated)}</p>
             <Button onClick={handleSave} disabled={saving || totalAllocated <= 0}>{saving ? 'Saving...' : 'Save Allocations'}</Button>
           </div>
         </Card>

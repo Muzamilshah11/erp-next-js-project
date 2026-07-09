@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { DataTable } from '@/components/shared/data-table'
-import { Plus, Trash2, Search, X, Loader2, TrendingUp, CheckCircle, ClipboardList } from 'lucide-react'
+import { Plus, Trash2, Search, X, Loader2, TrendingUp, CheckCircle, ClipboardList, XCircle } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
 interface InventoryItem { id: string; name: string; sku: string; quantity: number }

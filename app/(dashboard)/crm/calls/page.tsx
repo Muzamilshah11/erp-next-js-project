@@ -114,8 +114,8 @@ export default function CallsPage() {
         <DataTable columns={[
           { key: 'callNo', label: 'Call No', sortable: true },
           { key: 'subject', label: 'Subject' },
-          { key: 'customer.name', label: 'Customer' },
-          { key: 'type.name', label: 'Type', render: (_: unknown, row: Call) => row.type?.name || '-' },
+          { key: 'customer', label: 'Customer', render: (_: unknown, row: Call) => row.customer.name },
+          { key: 'type', label: 'Type', render: (_: unknown, row: Call) => row.type?.name || '-' },
           { key: 'duration', label: 'Duration (min)' },
           { key: 'date', label: 'Date', render: (_: unknown, row: Call) => new Date(row.date).toLocaleDateString() },
           { key: 'status', label: 'Status', render: (_: unknown, row: Call) => <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[row.status] || ''}`}>{row.status}</span> },

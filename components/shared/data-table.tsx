@@ -4,11 +4,12 @@ import { motion } from 'framer-motion'
 import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react'
 import { useState } from 'react'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface Column<T> {
-  key: keyof T
+  key: string
   label: string
   sortable?: boolean
-  render?: (value: T[keyof T], row: T) => React.ReactNode
+  render?: (value: any, row: T) => React.ReactNode
 }
 
 interface DataTableProps<T extends { id: string }> {
@@ -16,6 +17,7 @@ interface DataTableProps<T extends { id: string }> {
   data: T[]
   title?: string
   actions?: (row: T) => React.ReactNode
+  expandRow?: (row: T) => React.ReactNode
   selectable?: { selected: Set<string>; onToggle: (id: string) => void }
   emptyMessage?: string
 }
@@ -27,13 +29,14 @@ export function DataTable<T extends { id: string }>({
   data,
   title,
   actions,
+  expandRow,
   selectable,
   emptyMessage,
 }: DataTableProps<T>) {
-  const [sortKey, setSortKey] = useState<keyof T | null>(null)
+  const [sortKey, setSortKey] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>(null)
 
-  const handleSort = (key: keyof T) => {
+  const handleSort = (key: string) => {
     if (sortKey === key) {
       if (sortDirection === 'asc') {
         setSortDirection('desc')
@@ -50,8 +53,8 @@ export function DataTable<T extends { id: string }>({
   const sortedData = [...data].sort((a, b) => {
     if (!sortKey || !sortDirection) return 0
 
-    const aValue = a[sortKey]
-    const bValue = b[sortKey]
+    const aValue = (a as Record<string, unknown>)[sortKey]
+    const bValue = (b as Record<string, unknown>)[sortKey]
 
     if (typeof aValue === 'string' && typeof bValue === 'string') {
       return sortDirection === 'asc'
@@ -65,6 +68,8 @@ export function DataTable<T extends { id: string }>({
 
     return 0
   })
+
+  const colSpan = columns.length + (actions ? 1 : 0) + (selectable ? 1 : 0)
 
   return (
     <motion.div
@@ -118,39 +123,57 @@ export function DataTable<T extends { id: string }>({
             </tr>
           </thead>
           <tbody>
-            {sortedData.map((row, idx) => (
-              <motion.tr
-                key={row.id}
-                className="border-b border-black/10 dark:border-black/20 hover:bg-secondary/30 transition-colors"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.02, duration: 0.2 }}
-                whileHover={{ backgroundColor: 'rgba(15, 23, 42, 0.05)' }}
-              >
-                {selectable && (
-                  <td className="px-4 py-2 w-10">
-                    <input type="checkbox" className="rounded border-gray-300" checked={selectable.selected.has(row.id)} onChange={() => selectable.onToggle(row.id)} />
-                  </td>
-                )}
-                {columns.map(column => (
-                  <td
-                    key={String(column.key)}
-                    className="px-4 py-2 text-sm text-foreground"
+            {sortedData.flatMap((row, idx) => {
+              const rows: React.ReactNode[] = [
+                <motion.tr
+                  key={row.id}
+                  className="border-b border-black/10 dark:border-black/20 hover:bg-secondary/30 transition-colors"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.02, duration: 0.2 }}
+                  whileHover={{ backgroundColor: 'rgba(15, 23, 42, 0.05)' }}
+                >
+                  {selectable && (
+                    <td className="px-4 py-2 w-10">
+                      <input type="checkbox" className="rounded border-gray-300" checked={selectable.selected.has(row.id)} onChange={() => selectable.onToggle(row.id)} />
+                    </td>
+                  )}
+                  {columns.map(column => (
+                    <td
+                      key={String(column.key)}
+                      className="px-4 py-2 text-sm text-foreground"
+                    >
+                      {column.render
+                        ? column.render((row as Record<string, unknown>)[column.key], row)
+                        : String((row as Record<string, unknown>)[column.key])}
+                    </td>
+                  ))}
+                  {actions && (
+                    <td className="px-4 py-2 text-sm">
+                      <div className="flex items-center gap-1.5">
+                        {actions(row)}
+                      </div>
+                    </td>
+                  )}
+                </motion.tr>,
+              ]
+              if (expandRow) {
+                rows.push(
+                  <motion.tr key={`${row.id}-expand`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                   >
-                    {column.render
-                      ? column.render(row[column.key], row)
-                      : String(row[column.key])}
-                  </td>
-                ))}
-                {actions && (
-                  <td className="px-4 py-2 text-sm">
-                    <div className="flex items-center gap-1.5">
-                      {actions(row)}
-                    </div>
-                  </td>
-                )}
-              </motion.tr>
-            ))}
+                    <td colSpan={colSpan} className="p-0">
+                      <div className="p-4 border-b border-black/10 dark:border-black/20 bg-secondary/10">
+                        {expandRow(row)}
+                      </div>
+                    </td>
+                  </motion.tr>
+                )
+              }
+              return rows
+            })}
           </tbody>
         </table>
         

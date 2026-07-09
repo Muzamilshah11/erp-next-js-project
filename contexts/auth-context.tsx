@@ -25,12 +25,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
+  function safeJson(res: Response) {
+    const text = res.clone().text()
+    return text.then((t: string) => {
+      try { return JSON.parse(t) } catch { return null }
+    })
+  }
+
   const fetchUser = useCallback(async () => {
     try {
       const res = await fetch('/api/auth/me')
       if (res.ok) {
-        const data = await res.json()
-        setUser(data.user)
+        const data = await safeJson(res)
+        if (data?.user) setUser(data.user)
       }
     } catch {
       setUser(null)
@@ -49,8 +56,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error)
+    const data = await safeJson(res)
+    if (!res.ok) throw new Error(data?.error || 'Login failed. Please try again.')
+    if (!data?.user) throw new Error('Invalid response from server.')
     setUser(data.user)
     router.push('/dashboard')
   }
@@ -61,8 +69,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fullName, email, password }),
     })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error)
+    const data = await safeJson(res)
+    if (!res.ok) throw new Error(data?.error || 'Registration failed. Please try again.')
+    if (!data?.user) throw new Error('Invalid response from server.')
     setUser(data.user)
     router.push('/dashboard')
   }

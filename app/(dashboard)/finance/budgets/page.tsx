@@ -39,16 +39,15 @@ export default function BudgetsPage() {
 
       <DataTable
         columns={[
-          { header: 'Budget No', accessor: 'budgetNo' },
-          { header: 'Fiscal Year', accessor: 'fiscalYear' },
-          { header: 'Period', accessor: 'period' },
-          { header: 'Description', accessor: (b: any) => b.description || '-' },
-          { header: 'Lines', accessor: (b: any) => b.lines?.length || 0 },
-          { header: 'Status', accessor: (b: any) => <Badge className={statusColors[b.status] || ''}>{b.status}</Badge> },
-          { header: '', accessor: (b: any) => <Button variant="ghost" size="sm" onClick={() => router.push(`/finance/budgets/${b.id}`)}>View</Button> },
+          { key: 'budgetNo', label: 'Budget No' },
+          { key: 'fiscalYear', label: 'Fiscal Year' },
+          { key: 'period', label: 'Period' },
+          { key: 'description', label: 'Description', render: (v: any, b: any) => b.description || '-' },
+          { key: 'lines', label: 'Lines', render: (v: any, b: any) => b.lines?.length || 0 },
+          { key: 'status', label: 'Status', render: (v: any, b: any) => <Badge className={statusColors[b.status] || ''}>{b.status}</Badge> },
+          { key: 'id', label: '', render: (v: any, b: any) => <Button variant="ghost" size="sm" onClick={() => router.push(`/finance/budgets/${b.id}`)}>View</Button> },
         ]}
         data={budgets}
-        loading={loading}
         emptyMessage="No budgets found"
       />
     </div>

@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card } from '@/components/ui/card'
 import { Plus, Trash2, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { formatCurrency } from '@/lib/utils'
 
 export default function NewBudgetPage() {
   const router = useRouter()
@@ -56,7 +57,7 @@ export default function NewBudgetPage() {
         <div className="grid grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label>Fiscal Year</Label>
-            <Select value={fiscalYear} onValueChange={setFiscalYear}>
+            <Select value={fiscalYear} onValueChange={(v) => v && setFiscalYear(v)}>
               <SelectTrigger><SelectValue placeholder="Select year" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="2024-2025">2024-2025</SelectItem>
@@ -68,7 +69,7 @@ export default function NewBudgetPage() {
           </div>
           <div className="space-y-2">
             <Label>Period</Label>
-            <Select value={period} onValueChange={setPeriod}>
+            <Select value={period} onValueChange={(v) => v && setPeriod(v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="monthly">Monthly</SelectItem>
@@ -111,7 +112,7 @@ export default function NewBudgetPage() {
         ))}
         {lines.length > 0 && (
           <div className="flex justify-end pt-2">
-            <p className="text-lg font-semibold">Total Budget: ${totalBudget.toLocaleString()}</p>
+            <p className="text-lg font-semibold">Total Budget: {formatCurrency(totalBudget)}</p>
           </div>
         )}
       </Card>

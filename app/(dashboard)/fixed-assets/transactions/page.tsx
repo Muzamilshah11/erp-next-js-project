@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { DataTable } from '@/components/shared/data-table'
 import { Loader2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { formatCurrency } from '@/lib/utils'
 
 interface Transaction { id: string; type: string; date: string; description: string | null; amount: number; status: string; asset: { id: string; name: string; assetNo: string } }
 
@@ -49,7 +50,7 @@ export default function TransactionsPage() {
           { key: 'asset.name', label: 'Asset Name' },
           { key: 'type', label: 'Type' },
           { key: 'description', label: 'Description' },
-          { key: 'amount', label: 'Amount', render: (_: unknown, row: Transaction) => `$${row.amount.toLocaleString()}` },
+          { key: 'amount', label: 'Amount', render: (_: unknown, row: Transaction) => formatCurrency(row.amount) },
           { key: 'status', label: 'Status' },
         ]} data={transactions} title="All Transactions" />
       )}

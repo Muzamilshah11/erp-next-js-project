@@ -16,13 +16,13 @@ export default function TicketStatusPage() {
   const [form, setForm] = useState({ name: '', color: '#6b7280' })
   const [saving, setSaving] = useState(false)
 
-  const fetch = async () => {
+  const fetchData = async () => {
     setLoading(true); setError('')
     try { const res = await fetch('/api/crm/ticket-status'); const d = await res.json(); if (!res.ok) throw new Error(d.error); setStatuses(d.statuses) }
     catch (e) { setError(e instanceof Error ? e.message : 'Failed to load') }
     finally { setLoading(false) }
   }
-  useEffect(() => { fetch() }, [])
+  useEffect(() => { fetchData() }, [])
 
   const openNew = () => { setEditing(null); setForm({ name: '', color: '#6b7280' }); setShowForm(true) }
   const openEdit = (s: Status) => { setEditing(s); setForm({ name: s.name, color: s.color }); setShowForm(true) }
@@ -34,14 +34,14 @@ export default function TicketStatusPage() {
       const url = editing ? `/api/crm/ticket-status/${editing.id}` : '/api/crm/ticket-status'
       const res = await fetch(url, { method: editing ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
       if (!res.ok) { const d = await res.json(); throw new Error(d.error) }
-      setShowForm(false); setEditing(null); fetch()
+      setShowForm(false); setEditing(null); fetchData()
     } catch (e) { setError(e instanceof Error ? e.message : 'Failed to save') }
     finally { setSaving(false) }
   }
 
   const handleDelete = async (s: Status) => {
     if (!window.confirm(`Delete "${s.name}"?`)) return
-    try { const res = await fetch(`/api/crm/ticket-status/${s.id}`, { method: 'DELETE' }); const d = await res.json(); if (!res.ok) throw new Error(d.error); fetch() }
+    try { const res = await fetch(`/api/crm/ticket-status/${s.id}`, { method: 'DELETE' }); const d = await res.json(); if (!res.ok) throw new Error(d.error); fetchData() }
     catch (e) { setError(e instanceof Error ? e.message : 'Failed to delete') }
   }
 

@@ -6,6 +6,7 @@ import { Plus, ArrowLeft, Loader2, Pencil } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import { formatCurrency } from '@/lib/utils'
 
 interface Asset { id: string; assetNo: string; name: string; category: { name: string }; class: { name: string; usefulLife: number; salvageValue: number }; purchaseDate: string; purchaseCost: number; currentValue: number; accumulatedDepr: number; netBookValue: number; location: string | null; serialNo: string | null; status: string }
 interface Transaction { id: string; type: string; date: string; description: string | null; amount: number; status: string }
@@ -92,10 +93,10 @@ export default function AssetDetailPage() {
 
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label: 'Purchase Cost', value: `$${asset.purchaseCost.toLocaleString()}`, color: '' },
-          { label: 'Current Value', value: `$${asset.currentValue.toLocaleString()}`, color: '' },
-          { label: 'Accumulated Depreciation', value: `$${asset.accumulatedDepr.toLocaleString()}`, color: 'text-yellow-600 dark:text-yellow-400' },
-          { label: 'Net Book Value', value: `$${asset.netBookValue.toLocaleString()}`, color: 'text-green-600 dark:text-green-400' },
+          { label: 'Purchase Cost', value: formatCurrency(asset.purchaseCost), color: '' },
+          { label: 'Current Value', value: formatCurrency(asset.currentValue), color: '' },
+          { label: 'Accumulated Depreciation', value: formatCurrency(asset.accumulatedDepr), color: 'text-yellow-600 dark:text-yellow-400' },
+          { label: 'Net Book Value', value: formatCurrency(asset.netBookValue), color: 'text-green-600 dark:text-green-400' },
         ].map((stat, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} className="bg-card border border-border rounded-xl p-4">
             <div className="text-sm text-muted-foreground">{stat.label}</div>
@@ -108,11 +109,11 @@ export default function AssetDetailPage() {
         <div><span className="text-muted-foreground">Category:</span> <span className="text-foreground">{asset.category.name}</span></div>
         <div><span className="text-muted-foreground">Class:</span> <span className="text-foreground">{asset.class.name}</span></div>
         <div><span className="text-muted-foreground">Useful Life:</span> <span className="text-foreground">{asset.class.usefulLife} yrs</span></div>
-        <div><span className="text-muted-foreground">Salvage Value:</span> <span className="text-foreground">${asset.class.salvageValue}</span></div>
+        <div><span className="text-muted-foreground">Salvage Value:</span> <span className="text-foreground">{formatCurrency(asset.class.salvageValue)}</span></div>
         <div><span className="text-muted-foreground">Purchase Date:</span> <span className="text-foreground">{new Date(asset.purchaseDate).toLocaleDateString()}</span></div>
         <div><span className="text-muted-foreground">Location:</span> <span className="text-foreground">{asset.location || '-'}</span></div>
         <div><span className="text-muted-foreground">Serial No:</span> <span className="text-foreground">{asset.serialNo || '-'}</span></div>
-        <div><span className="text-muted-foreground">Monthly Depreciation:</span> <span className="text-foreground">${monthlyDepr}</span></div>
+        <div><span className="text-muted-foreground">Monthly Depreciation:</span> <span className="text-foreground">{formatCurrency(Number(monthlyDepr))}</span></div>
       </motion.div>
 
       {error && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg text-sm">{error}<button onClick={() => setError('')} className="ml-2 underline">Dismiss</button></motion.div>}
@@ -144,7 +145,7 @@ export default function AssetDetailPage() {
           { key: 'date', label: 'Date', sortable: true, render: (_: unknown, row: Transaction) => new Date(row.date).toLocaleDateString() },
           { key: 'type', label: 'Type' },
           { key: 'description', label: 'Description' },
-          { key: 'amount', label: 'Amount', render: (_: unknown, row: Transaction) => `$${row.amount.toLocaleString()}` },
+          { key: 'amount', label: 'Amount', render: (_: unknown, row: Transaction) => formatCurrency(row.amount) },
           { key: 'status', label: 'Status' },
         ]} data={transactions} />
       </div>
@@ -170,7 +171,7 @@ export default function AssetDetailPage() {
 
         <DataTable columns={[
           { key: 'period', label: 'Period', sortable: true },
-          { key: 'amount', label: 'Amount', render: (_: unknown, row: DeprEntry) => `$${row.amount.toLocaleString()}` },
+          { key: 'amount', label: 'Amount', render: (_: unknown, row: DeprEntry) => formatCurrency(row.amount) },
           { key: 'status', label: 'Status' },
           { key: 'createdAt', label: 'Posted Date', render: (_: unknown, row: DeprEntry) => new Date(row.createdAt).toLocaleDateString() },
         ]} data={depreciation} />

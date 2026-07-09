@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const q = searchParams.get('q')?.trim()
-    const where = q ? { OR: [{ transferNo: { contains: q, mode: 'insensitive' } }] } : {}
+    const where = q ? { OR: [{ transferNo: { contains: q, mode: 'insensitive' as const } }] } : {}
 
     const transfers = await prisma.stockTransfer.findMany({
       where,

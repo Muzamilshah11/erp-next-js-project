@@ -60,7 +60,7 @@ export default function SalesImportPage() {
       <Card className="p-6 space-y-4">
         <div className="space-y-2">
           <Label>Import Type</Label>
-          <Select value={importType} onValueChange={setImportType}>
+          <Select value={importType} onValueChange={(v) => v && setImportType(v)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="customers">Customers</SelectItem>

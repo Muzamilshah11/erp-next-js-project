@@ -9,7 +9,7 @@ import Link from 'next/link'
 interface InvItem { id: string; name: string; sku: string }
 interface Warehouse { id: string; name: string }
 interface WorkCenter { id: string; name: string }
-interface BOM { id: string; bomNo: string; name: string }
+interface BOM { id: string; bomNo: string; name: string; item: InvItem }
 interface WOItem { id: string; item: InvItem; quantity: number; consumedQty: number; type: string }
 interface WorkOrder {
   id: string; workOrderNo: string; type: string; item: InvItem; bom: BOM | null

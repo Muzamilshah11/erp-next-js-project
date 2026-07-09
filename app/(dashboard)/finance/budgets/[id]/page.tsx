@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { ArrowLeft, Plus, Trash2, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { formatCurrency } from '@/lib/utils'
 
 const statusColors: Record<string, string> = {
   draft: 'bg-yellow-100 text-yellow-800',
@@ -100,7 +101,7 @@ export default function BudgetDetailPage() {
           <div className="space-y-2">
             <Label>Fiscal Year</Label>
             {editing ? (
-              <Select value={fiscalYear} onValueChange={setFiscalYear}>
+              <Select value={fiscalYear} onValueChange={(v) => v && setFiscalYear(v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="2024-2025">2024-2025</SelectItem>
@@ -114,7 +115,7 @@ export default function BudgetDetailPage() {
           <div className="space-y-2">
             <Label>Period</Label>
             {editing ? (
-              <Select value={period} onValueChange={setPeriod}>
+              <Select value={period} onValueChange={(v) => v && setPeriod(v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="monthly">Monthly</SelectItem>
@@ -127,7 +128,7 @@ export default function BudgetDetailPage() {
           <div className="space-y-2">
             <Label>Status</Label>
             {editing ? (
-              <Select value={status} onValueChange={setStatus}>
+              <Select value={status} onValueChange={(v) => v && setStatus(v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="draft">Draft</SelectItem>
@@ -176,11 +177,11 @@ export default function BudgetDetailPage() {
                     ) : (accounts.find((a: any) => a.id === line.accountId)?.name || line.accountId)}
                   </td>
                   <td className="py-2 text-right">
-                    {editing ? <Input type="number" className="w-28 ml-auto text-right" min={0} step="0.01" value={line.amount || ''} onChange={e => updateLine(idx, 'amount', Number(e.target.value))} /> : `$${(line.amount || 0).toLocaleString()}`}
+                    {editing ? <Input type="number" className="w-28 ml-auto text-right" min={0} step="0.01" value={line.amount || ''} onChange={e => updateLine(idx, 'amount', Number(e.target.value))} /> : formatCurrency(line.amount || 0)}
                   </td>
-                  <td className="py-2 text-right">${actual.toLocaleString()}</td>
+                  <td className="py-2 text-right">{formatCurrency(actual)}</td>
                   <td className={`py-2 text-right font-medium ${variance < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                    {variance >= 0 ? '+' : ''}${variance.toLocaleString()}
+                    {variance >= 0 ? '+' : ''}{formatCurrency(variance)}
                   </td>
                   {editing && (
                     <td className="py-2 text-right">
@@ -194,9 +195,9 @@ export default function BudgetDetailPage() {
           <tfoot>
             <tr className="font-semibold border-t">
               <td className="pt-2">Total</td>
-              <td className="pt-2 text-right">${lines.reduce((s: number, l: any) => s + (l.amount || 0), 0).toLocaleString()}</td>
-              <td className="pt-2 text-right">${lines.reduce((s: number, l: any) => s + (l.actual || 0), 0).toLocaleString()}</td>
-              <td className="pt-2 text-right">${(lines.reduce((s: number, l: any) => s + (l.amount || 0), 0) - lines.reduce((s: number, l: any) => s + (l.actual || 0), 0)).toLocaleString()}</td>
+              <td className="pt-2 text-right">{formatCurrency(lines.reduce((s: number, l: any) => s + (l.amount || 0), 0))}</td>
+              <td className="pt-2 text-right">{formatCurrency(lines.reduce((s: number, l: any) => s + (l.actual || 0), 0))}</td>
+              <td className="pt-2 text-right">{formatCurrency(lines.reduce((s: number, l: any) => s + (l.amount || 0), 0) - lines.reduce((s: number, l: any) => s + (l.actual || 0), 0))}</td>
               {editing && <td className="pt-2"></td>}
             </tr>
           </tfoot>

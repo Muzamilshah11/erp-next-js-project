@@ -10,13 +10,12 @@ export async function GET(request: Request) {
     const employeeId = searchParams.get('employeeId')
     const fromDate = searchParams.get('fromDate')
     const toDate = searchParams.get('toDate')
-    const where: Record<string, unknown> = {}
+    const dateFilter: { gte?: Date; lte?: Date } = {}
+    if (fromDate) dateFilter.gte = new Date(fromDate)
+    if (toDate) dateFilter.lte = new Date(toDate)
+    const where: { employeeId?: string; effectiveFrom?: typeof dateFilter } = {}
     if (employeeId) where.employeeId = employeeId
-    if (fromDate || toDate) {
-      where.effectiveFrom = {}
-      if (fromDate) where.effectiveFrom.gte = new Date(fromDate)
-      if (toDate) where.effectiveFrom.lte = new Date(toDate)
-    }
+    if (fromDate || toDate) where.effectiveFrom = dateFilter
     const items = await prisma.salaryIncrement.findMany({
       where,
       include: { employee: { select: { id: true, name: true, employeeNo: true, department: { select: { name: true } } } }, approvedBy: { select: { id: true, fullName: true } } },

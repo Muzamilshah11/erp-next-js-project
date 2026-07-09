@@ -159,7 +159,7 @@ export default function BOMPage() {
           )}
           actions={(row) => (
             <div className="flex items-center gap-1">
-              <motion.button onClick={async () => { setEditing(row as BOM); setForm({ name: (row as BOM).name, itemId: (row as BOM).item?.id || '', quantity: String((row as BOM).quantity || 1) }); const bRes = await fetch(`/api/manufacturing/bom/${row.id}`); const bData = await bRes.json(); if (bData.bom) { setBomItems(bData.bom.items.map((i: BOMItem) => ({ itemId: i.itemId, quantity: String(i.quantity), unitCost: String(i.unitCost) }))); setShowForm(true) } }} className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg" whileHover={{ scale: 1.1 }} title="Edit"><Pencil className="w-4 h-4" /></motion.button>
+              <motion.button onClick={async () => { setEditing(row as BOM); setForm({ name: (row as BOM).name, itemId: (row as BOM).item?.id || '', quantity: String((row as BOM).quantity || 1) }); const bRes = await fetch(`/api/manufacturing/bom/${row.id}`); const bData = await bRes.json(); if (bData.bom) { setBomItems(bData.bom.items.map((i: BOMItem) => ({ itemId: i.item.id, quantity: String(i.quantity), unitCost: String(i.unitCost) }))); setShowForm(true) } }} className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg" whileHover={{ scale: 1.1 }} title="Edit"><Pencil className="w-4 h-4" /></motion.button>
               <motion.button onClick={() => handleDelete(row.id)} className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg" whileHover={{ scale: 1.1 }} title="Delete"><Trash2 className="w-4 h-4" /></motion.button>
             </div>
           )}

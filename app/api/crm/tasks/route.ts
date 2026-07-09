@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     if (assignedTo) where.assignedTo = assignedTo
     if (statusId) where.statusId = statusId
     if (priority) where.priority = priority
-    if (q) where.OR = [{ title: { contains: q, mode: 'insensitive' } }, { taskNo: { contains: q, mode: 'insensitive' } }, { description: { contains: q, mode: 'insensitive' } }]
+    if (q) where.OR = [{ title: { contains: q, mode: 'insensitive' as const } }, { taskNo: { contains: q, mode: 'insensitive' as const } }, { description: { contains: q, mode: 'insensitive' as const } }]
 
     const tasks = await prisma.task.findMany({
       where, include: { assignee: { select: { id: true, fullName: true } }, status: { select: { id: true, name: true, color: true } } },

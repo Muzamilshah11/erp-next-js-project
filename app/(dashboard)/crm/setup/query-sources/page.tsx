@@ -16,13 +16,13 @@ export default function QuerySourcesPage() {
   const [form, setForm] = useState({ name: '' })
   const [saving, setSaving] = useState(false)
 
-  const fetch = async () => {
+  const fetchData = async () => {
     setLoading(true); setError('')
     try { const res = await fetch('/api/crm/query-sources'); const d = await res.json(); if (!res.ok) throw new Error(d.error); setSources(d.sources) }
     catch (e) { setError(e instanceof Error ? e.message : 'Failed to load') }
     finally { setLoading(false) }
   }
-  useEffect(() => { fetch() }, [])
+  useEffect(() => { fetchData() }, [])
 
   const openNew = () => { setEditing(null); setForm({ name: '' }); setShowForm(true) }
   const openEdit = (s: Source) => { setEditing(s); setForm({ name: s.name }); setShowForm(true) }
@@ -34,14 +34,14 @@ export default function QuerySourcesPage() {
       const url = editing ? `/api/crm/query-sources/${editing.id}` : '/api/crm/query-sources'
       const res = await fetch(url, { method: editing ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
       if (!res.ok) { const d = await res.json(); throw new Error(d.error) }
-      setShowForm(false); setEditing(null); fetch()
+      setShowForm(false); setEditing(null); fetchData()
     } catch (e) { setError(e instanceof Error ? e.message : 'Failed to save') }
     finally { setSaving(false) }
   }
 
   const handleDelete = async (s: Source) => {
     if (!window.confirm(`Delete "${s.name}"?`)) return
-    try { const res = await fetch(`/api/crm/query-sources/${s.id}`, { method: 'DELETE' }); const d = await res.json(); if (!res.ok) throw new Error(d.error); fetch() }
+    try { const res = await fetch(`/api/crm/query-sources/${s.id}`, { method: 'DELETE' }); const d = await res.json(); if (!res.ok) throw new Error(d.error); fetchData() }
     catch (e) { setError(e instanceof Error ? e.message : 'Failed to delete') }
   }
 

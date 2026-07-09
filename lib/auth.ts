@@ -4,7 +4,7 @@ import { prisma } from './prisma'
 import { verifyToken } from './auth-edge'
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'fallback-secret-change-in-production'
+  process.env.JWT_SECRET
 )
 
 const COOKIE_NAME = 'session'

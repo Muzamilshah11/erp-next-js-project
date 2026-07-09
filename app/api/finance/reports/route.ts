@@ -3,20 +3,16 @@ import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 
 export async function GET(request: Request) {
-  const user = await getSession()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const { searchParams } = new URL(request.url)
-  const type = searchParams.get('type') || 'trial-balance'
-  const fromDate = searchParams.get('from')
-  const toDate = searchParams.get('to')
-
   try {
-    const accounts = await prisma.account.findMany({ orderBy: { code: 'asc' } })
+    const user = await getSession()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const dateFilter = fromDate && toDate
-      ? { journalEntry: { date: { gte: new Date(fromDate), lte: new Date(toDate) } } }
-      : {}
+    const { searchParams } = new URL(request.url)
+    const type = searchParams.get('type') || 'trial-balance'
+    const fromDate = searchParams.get('from')
+    const toDate = searchParams.get('to')
+
+    const accounts = await prisma.account.findMany({ orderBy: { code: 'asc' } })
 
     const lines = await prisma.journalLine.findMany({
       where: {

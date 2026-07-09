@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card } from '@/components/ui/card'
 import { Plus, Trash2, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { formatCurrency } from '@/lib/utils'
 
 interface Customer { id: string; name: string }
 interface InventoryItem { id: string; sku: string; name: string }
@@ -77,7 +78,7 @@ export default function NewSalesCreditNotePage() {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Customer</Label>
-            <Select value={customerId} onValueChange={setCustomerId}>
+            <Select value={customerId} onValueChange={(v) => v && setCustomerId(v)}>
               <SelectTrigger><SelectValue placeholder="Select customer" /></SelectTrigger>
               <SelectContent>
                 {customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
@@ -105,7 +106,7 @@ export default function NewSalesCreditNotePage() {
           <div key={idx} className="grid grid-cols-12 gap-2 items-end border-b pb-3">
             <div className="col-span-3 space-y-1">
               <Label className="text-xs">Item</Label>
-              <Select value={it.itemId} onValueChange={(v) => updateItem(idx, 'itemId', v)}>
+              <Select value={it.itemId} onValueChange={(v) => v && updateItem(idx, 'itemId', v)}>
                 <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
                   {items.map(i => <SelectItem key={i.id} value={i.id}>{i.name} ({i.sku})</SelectItem>)}
@@ -114,7 +115,7 @@ export default function NewSalesCreditNotePage() {
             </div>
             <div className="col-span-2 space-y-1">
               <Label className="text-xs">Warehouse</Label>
-              <Select value={it.warehouseId} onValueChange={(v) => updateItem(idx, 'warehouseId', v)}>
+              <Select value={it.warehouseId} onValueChange={(v) => v && updateItem(idx, 'warehouseId', v)}>
                 <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
                   {warehouses.map(w => <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>)}
@@ -135,7 +136,7 @@ export default function NewSalesCreditNotePage() {
             </div>
             <div className="col-span-1 space-y-1">
               <Label className="text-xs">Total</Label>
-              <p className="text-sm font-medium pt-1">${(it.quantity * it.price).toFixed(2)}</p>
+              <p className="text-sm font-medium pt-1">{formatCurrency(it.quantity * it.price)}</p>
             </div>
             <div className="col-span-1 flex items-end">
               <Button variant="ghost" size="sm" onClick={() => removeItem(idx)}><Trash2 className="w-4 h-4 text-red-500" /></Button>
@@ -144,7 +145,7 @@ export default function NewSalesCreditNotePage() {
         ))}
         {noteItems.length > 0 && (
           <div className="flex justify-end pt-2">
-            <p className="text-lg font-semibold">Total: ${totalAmount.toFixed(2)}</p>
+            <p className="text-lg font-semibold">Total: {formatCurrency(totalAmount)}</p>
           </div>
         )}
       </Card>

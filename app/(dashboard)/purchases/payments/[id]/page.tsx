@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { format } from 'date-fns'
+import { formatCurrency } from '@/lib/utils'
 
 export default function PurchasePaymentDetailPage() {
   const params = useParams()
@@ -35,7 +36,7 @@ export default function PurchasePaymentDetailPage() {
       <div className="grid grid-cols-4 gap-4">
         <Card className="p-4"><p className="text-xs text-muted-foreground">Supplier</p><p className="text-sm font-medium">{payment.supplier?.name}</p></Card>
         <Card className="p-4"><p className="text-xs text-muted-foreground">Date</p><p className="text-sm font-medium">{format(new Date(payment.date), 'dd MMM yyyy')}</p></Card>
-        <Card className="p-4"><p className="text-xs text-muted-foreground">Amount</p><p className="text-sm font-medium">${payment.amount.toLocaleString()}</p></Card>
+        <Card className="p-4"><p className="text-xs text-muted-foreground">Amount</p><p className="text-sm font-medium">{formatCurrency(payment.amount)}</p></Card>
         <Card className="p-4"><p className="text-xs text-muted-foreground">Method</p><p className="text-sm font-medium">{payment.paymentMethod}</p></Card>
       </div>
       {payment.allocations?.length > 0 && (
@@ -43,7 +44,7 @@ export default function PurchasePaymentDetailPage() {
           <h2 className="text-lg font-semibold mb-4">Allocations</h2>
           <table className="w-full text-sm">
             <thead><tr className="border-b text-left text-muted-foreground"><th className="pb-2">Bill</th><th className="pb-2 text-right">Amount</th></tr></thead>
-            <tbody>{payment.allocations.map((a: any) => <tr key={a.id} className="border-b last:border-0"><td className="py-2">{a.bill?.billNo || '-'}</td><td className="py-2 text-right">${a.amount.toFixed(2)}</td></tr>)}</tbody>
+            <tbody>{payment.allocations.map((a: any) => <tr key={a.id} className="border-b last:border-0"><td className="py-2">{a.bill?.billNo || '-'}</td><td className="py-2 text-right">{formatCurrency(a.amount)}</td></tr>)}</tbody>
           </table>
         </Card>
       )}

@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     const q = searchParams.get('q')?.trim()
     const groupId = searchParams.get('groupId')?.trim()
     const where: Record<string, unknown> = {}
-    if (q) where.OR = [{ name: { contains: q, mode: 'insensitive' } }, { email: { contains: q, mode: 'insensitive' } }]
+    if (q) where.OR = [{ name: { contains: q, mode: 'insensitive' as const } }, { email: { contains: q, mode: 'insensitive' as const } }]
     if (groupId) where.groupId = groupId
     const persons = await prisma.salesPerson.findMany({ where, include: { group: true }, orderBy: { name: 'asc' } })
     return NextResponse.json({ persons })

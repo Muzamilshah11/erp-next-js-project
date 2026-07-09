@@ -43,7 +43,7 @@ export async function POST(request: Request) {
       const assetAccount = await prisma.account.findFirst({ where: { code: '1500' } })
       const cashAccount = await prisma.account.findFirst({ where: { code: '1000' } })
       const deprAccount = await prisma.account.findFirst({ where: { code: '1501' } })
-      const gainLossAccount = await prisma.account.findFirst({ where: { code: '4000' } }) || assetAccount
+      const gainLossAccount = (await prisma.account.findFirst({ where: { code: '4000' } })) || assetAccount!
 
       if (assetAccount && cashAccount) {
         const jeCount = await prisma.journalEntry.count()

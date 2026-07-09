@@ -16,13 +16,13 @@ export default function CallTypesPage() {
   const [form, setForm] = useState({ name: '' })
   const [saving, setSaving] = useState(false)
 
-  const fetch = async () => {
+  const fetchData = async () => {
     setLoading(true); setError('')
     try { const res = await fetch('/api/crm/call-types'); const d = await res.json(); if (!res.ok) throw new Error(d.error); setTypes(d.types) }
     catch (e) { setError(e instanceof Error ? e.message : 'Failed to load') }
     finally { setLoading(false) }
   }
-  useEffect(() => { fetch() }, [])
+  useEffect(() => { fetchData() }, [])
 
   const openNew = () => { setEditing(null); setForm({ name: '' }); setShowForm(true) }
   const openEdit = (t: Type) => { setEditing(t); setForm({ name: t.name }); setShowForm(true) }
@@ -34,14 +34,14 @@ export default function CallTypesPage() {
       const url = editing ? `/api/crm/call-types/${editing.id}` : '/api/crm/call-types'
       const res = await fetch(url, { method: editing ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
       if (!res.ok) { const d = await res.json(); throw new Error(d.error) }
-      setShowForm(false); setEditing(null); fetch()
+      setShowForm(false); setEditing(null); fetchData()
     } catch (e) { setError(e instanceof Error ? e.message : 'Failed to save') }
     finally { setSaving(false) }
   }
 
   const handleDelete = async (t: Type) => {
     if (!window.confirm(`Delete "${t.name}"?`)) return
-    try { const res = await fetch(`/api/crm/call-types/${t.id}`, { method: 'DELETE' }); const d = await res.json(); if (!res.ok) throw new Error(d.error); fetch() }
+    try { const res = await fetch(`/api/crm/call-types/${t.id}`, { method: 'DELETE' }); const d = await res.json(); if (!res.ok) throw new Error(d.error); fetchData() }
     catch (e) { setError(e instanceof Error ? e.message : 'Failed to delete') }
   }
 

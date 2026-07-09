@@ -55,11 +55,11 @@ export default function InquiriesPage() {
                 <DataTable columns={[
                   { key: 'ticketNo', label: 'Ticket' },
                   { key: 'subject', label: 'Subject' },
-                  { key: 'customer.name', label: 'Customer' },
-                  { key: 'assignee.fullName', label: 'Agent' },
-                  { key: 'status.name', label: 'Status', render: (_: unknown, row: Record<string, unknown>) => <span className="px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: (row.status as Record<string, string>).color + '20', color: (row.status as Record<string, string>).color }}>{(row.status as Record<string, string>).name}</span> },
+                  { key: 'customer', label: 'Customer', render: (_: unknown, row: Record<string, unknown>) => (row.customer as Record<string, string>)?.name || '-' },
+                  { key: 'assignee', label: 'Agent', render: (_: unknown, row: Record<string, unknown>) => (row.assignee as Record<string, string>)?.fullName || '-' },
+                  { key: 'status', label: 'Status', render: (_: unknown, row: Record<string, unknown>) => <span className="px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: (row.status as Record<string, string>).color + '20', color: (row.status as Record<string, string>).color }}>{(row.status as Record<string, string>).name}</span> },
                   { key: 'createdAt', label: 'Date', render: (_: unknown, row: Record<string, unknown>) => new Date(row.createdAt as string).toLocaleDateString() },
-                ]} data={(data as { recent: unknown[] }).recent} title="Recent Tickets" />
+                ]} data={(data as { recent: { id: string }[] }).recent} title="Recent Tickets" />
               )}
             </>
           )}
@@ -73,9 +73,9 @@ export default function InquiriesPage() {
                 <DataTable columns={[
                   { key: 'taskNo', label: 'Task No' },
                   { key: 'title', label: 'Title' },
-                  { key: 'assignee.fullName', label: 'Assignee' },
-                  { key: 'status.name', label: 'Status', render: (_: unknown, row: Record<string, unknown>) => <span className="px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: (row.status as Record<string, string>).color + '20', color: (row.status as Record<string, string>).color }}>{(row.status as Record<string, string>).name}</span> },
-                ]} data={(data as { recent: unknown[] }).recent} title="Recent Tasks" />
+                  { key: 'assignee', label: 'Assignee', render: (_: unknown, row: Record<string, unknown>) => (row.assignee as Record<string, string>)?.fullName || '-' },
+                  { key: 'status', label: 'Status', render: (_: unknown, row: Record<string, unknown>) => <span className="px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: (row.status as Record<string, string>).color + '20', color: (row.status as Record<string, string>).color }}>{(row.status as Record<string, string>).name}</span> },
+                ]} data={(data as { recent: { id: string }[] }).recent} title="Recent Tasks" />
               )}
             </>
           )}
@@ -99,11 +99,11 @@ export default function InquiriesPage() {
                 <DataTable columns={[
                   { key: 'queryNo', label: 'Query No' },
                   { key: 'subject', label: 'Subject' },
-                  { key: 'customer.name', label: 'Customer' },
-                  { key: 'assignee.fullName', label: 'Assignee' },
-                  { key: 'source.name', label: 'Source' },
+                  { key: 'customer', label: 'Customer', render: (_: unknown, row: Record<string, unknown>) => (row.customer as Record<string, string>)?.name || '-' },
+                  { key: 'assignee', label: 'Assignee', render: (_: unknown, row: Record<string, unknown>) => (row.assignee as Record<string, string>)?.fullName || '-' },
+                  { key: 'source', label: 'Source', render: (_: unknown, row: Record<string, unknown>) => (row.source as Record<string, string>)?.name || '-' },
                   { key: 'status', label: 'Status', render: (_: unknown, row: Record<string, unknown>) => <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[row.status as string] || ''}`}>{row.status as string}</span> },
-                ]} data={(data as { recent: unknown[] }).recent} title="Recent Queries" />
+                ]} data={(data as { recent: { id: string }[] }).recent} title="Recent Queries" />
               )}
             </>
           )}
